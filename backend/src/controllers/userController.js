@@ -2,9 +2,30 @@
 const userService = require('../services/userService');
 
 const userController = {
-  // TODO: Get user profile
+  // Get user profile
   getProfile: async (req, res, next) => {
-    // Implementation needed
+    try {
+      const user = req.user;
+      
+      res.json({
+        success: true,
+        message: 'Profile retrieved successfully',
+        data: {
+          user: {
+            id: user.userId,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role
+          }
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve profile'
+      });
+    }
   },
 
   // TODO: Update user profile

@@ -44,7 +44,19 @@ See the file structure below for organization guidelines.
 
 ## Architecture Diagram
 ```
-Frontend (React) ←→ Backend API (Express) ←→ Database (PostgreSQL)
+Frontend (React) ←→ Backend API (Express) ←→ Database (MongoDB Atlas)
                            ↓
                     AI Service (OpenAI)
 ```
+
+## Authentication System
+SkillWise implements a secure JWT-based authentication system with MongoDB Atlas for data persistence. For detailed information about the authentication flow, security measures, and implementation details, see:
+
+**📋 [Complete Authentication Flow Documentation](AUTHENTICATION_FLOW.md)**
+
+### Key Security Features:
+- **bcrypt Password Hashing**: 12 salt rounds for maximum security
+- **JWT Access/Refresh Tokens**: Short-lived access tokens with secure refresh mechanism
+- **MongoDB Atlas**: Secure cloud database with encrypted connections
+- **Input Validation**: Zod schema validation for all user inputs
+- **Rate Limiting**: Protection against brute force attacks

@@ -1,58 +1,65 @@
-#!/usr/bin/env node
-// TODO: Server entry point with graceful shutdown and error handling
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+require('dotenv').config();
+// const connectDB = require('./config/database');
 
-const app = require('./src/app');
-const logger = app.get('logger');
-
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Start server
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 SkillWise API Server running on port ${PORT}`);
-  logger.info(`📊 Health check available at http://localhost:${PORT}/healthz`);
-  logger.info(`🌐 API endpoints available at http://localhost:${PORT}/api`);
-  logger.info(`🔒 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Graceful shutdown handling
-const gracefulShutdown = (signal) => {
-  logger.info(`📴 Received ${signal}. Starting graceful shutdown...`);
-  
-  server.close((err) => {
-    if (err) {
-      logger.error('❌ Error during server shutdown:', err);
-      process.exit(1);
-    }
-    
-    logger.info('✅ Server closed successfully');
-    
-    // Close database connections, cleanup resources, etc.
-    // TODO: Add database connection cleanup
-    
-    process.exit(0);
+// Import routes
+const authRoutes = require('./routes/auth');
+const dashboardRoutes = require('./routes/dashboard');
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'SkillWise API is running!',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV
   });
-
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    logger.error('⏰ Forced shutdown after timeout');
-    process.exit(1);
-  }, 10000);
-};
-
-// Handle shutdown signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  logger.error('💥 Uncaught Exception:', err);
-  process.exit(1);
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
-module.exports = server;
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Something went wrong!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl
+  });
+});
+
+// Connect to MongoDB (disabled for initial setup - enable when DB is configured)
+// connectDB();
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`API URL: http://localhost:${PORT}/api`);
+});

@@ -1,8 +1,8 @@
-// TODO: Implement home/landing page
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
-  // TODO: Add hero section, features, testimonials, call-to-action
+  const navigate = useNavigate();
+
   return (
     <div className="home-page">
       <section className="hero">
@@ -10,8 +10,19 @@ const HomePage = () => {
           <h1>Welcome to SkillWise</h1>
           <p>Your AI-powered learning companion for skill development</p>
           <div className="hero-actions">
-            <button className="btn-primary">Get Started</button>
-            <button className="btn-secondary">Learn More</button>
+            <button className="btn-primary" onClick={() => navigate('/signup')}>
+              Get Started
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() =>
+                document
+                  .getElementById('features')
+                  .scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              Learn More
+            </button>
           </div>
         </div>
       </section>

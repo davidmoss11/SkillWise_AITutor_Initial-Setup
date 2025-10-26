@@ -1,56 +1,73 @@
-// TODO: JWT authentication middleware
 const jwt = require('jsonwebtoken');
-const { AppError } = require('./errorHandler');
+const db = require('../database/connection');
 
+/**
+ * Simple JWT auth middleware that checks Authorization Bearer token,
+ * verifies it and attaches the user record (id, email, role) to req.user.
+ */
 const auth = async (req, res, next) => {
   try {
-    // TODO: Get token from header
     let token;
-    
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.header('x-auth-token')) {
+      token = req.header('x-auth-token');
+    } else if (req.cookies && req.cookies.jwt) {
+      token = req.cookies.jwt;
     }
 
     if (!token) {
-      return next(new AppError('You are not logged in! Please log in to get access.', 401, 'NO_TOKEN'));
+      return res.status(401).json({ error: 'You are not logged in' });
     }
 
-    // TODO: Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
 
-    // TODO: Check if user still exists (optional - requires database query)
-    // const currentUser = await User.findById(decoded.id);
-    // if (!currentUser) {
-    //   return next(new AppError('The user belonging to this token does no longer exist.', 401));
-    // }
-
-    // TODO: Check if user changed password after token was issued (optional)
-    // if (currentUser.changedPasswordAfter(decoded.iat)) {
-    //   return next(new AppError('User recently changed password! Please log in again.', 401));
-    // }
-
-    // Grant access to protected route
-    req.user = decoded;
-    next();
-  } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return next(new AppError('Invalid token. Please log in again.', 401, 'INVALID_TOKEN'));
-    } else if (error.name === 'TokenExpiredError') {
-      return next(new AppError('Your token has expired! Please log in again.', 401, 'TOKEN_EXPIRED'));
+    // Load user from DB
+    const result = await db.query(
+      'SELECT id, email, role, password_changed_at FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    const user = result.rows[0];
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
     }
-    return next(error);
+
+    // If password_changed_at exists, ensure token iat is newer
+    if (user.password_changed_at) {
+      const pwdChangedAtSec = Math.floor(
+        new Date(user.password_changed_at).getTime() / 1000
+      );
+      if (decoded.iat && pwdChangedAtSec > decoded.iat) {
+        return res.status(401).json({
+          error: 'User changed password recently. Please login again.',
+        });
+      }
+    }
+
+    req.user = { id: user.id, email: user.email, role: user.role };
+    return next();
+  } catch (err) {
+    console.error('Auth middleware error', err);
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    return res.status(401).json({ error: 'Invalid token' });
   }
 };
 
-// TODO: Middleware to restrict access to specific roles
-const restrictTo = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(new AppError('You do not have permission to perform this action', 403, 'INSUFFICIENT_PERMISSIONS'));
+// Simple role restriction helper
+const restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
     next();
   };
-};
 
 module.exports = auth;
 module.exports.restrictTo = restrictTo;

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 // Authentication business logic
 const jwt = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
@@ -111,15 +112,71 @@ const authService = {
 
       return {
         user: newUser,
+=======
+const jwt = require('../utils/jwt');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+
+const authService = {
+  // User registration
+  register: async (userData) => {
+    try {
+      const { email, password, firstName, lastName } = userData;
+
+      // Check if user already exists
+      const existingUser = await User.findByEmail(email);
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Validate input
+      if (!email || !password || !firstName || !lastName) {
+        throw new Error('All fields are required');
+      }
+
+      if (password.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
+      }
+
+      // Hash password
+      const saltRounds = 12;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
+
+      // Create user
+      const newUser = await User.create({
+        email: email.toLowerCase().trim(),
+        passwordHash,
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
+      });
+
+      // Generate tokens
+      const accessToken = jwt.generateAccessToken({ 
+        id: newUser.id, 
+        email: newUser.email, 
+        role: newUser.role 
+      });
+      
+      const refreshToken = jwt.generateRefreshToken({ 
+        id: newUser.id 
+      });
+
+      return {
+        user: newUser.toJSON(),
+>>>>>>> Stashed changes
         accessToken,
         refreshToken
       };
     } catch (error) {
+<<<<<<< Updated upstream
       logger.error('Registration error:', error);
+=======
+>>>>>>> Stashed changes
       throw error;
     }
   },
 
+<<<<<<< Updated upstream
   // Token refresh
   refreshToken: async (refreshToken) => {
     try {
@@ -159,10 +216,88 @@ const authService = {
       };
     } catch (error) {
       logger.error('Token refresh error:', error);
+=======
+  // User login
+  login: async (email, password) => {
+    try {
+      // Validate input
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      // Find user by email
+      const user = await User.findByEmail(email.toLowerCase().trim());
+      if (!user) {
+        throw new Error('Invalid credentials');
+      }
+
+      // Check password
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+      if (!isValidPassword) {
+        throw new Error('Invalid credentials');
+      }
+
+      // Update last login
+      await User.updateLastLogin(user.id);
+
+      // Generate tokens
+      const accessToken = jwt.generateAccessToken({ 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
+      });
+      
+      const refreshToken = jwt.generateRefreshToken({ 
+        id: user.id 
+      });
+
+      // Remove password hash from user object
+      const { passwordHash, ...userWithoutPassword } = user;
+
+      return {
+        user: userWithoutPassword,
+        accessToken,
+        refreshToken
+      };
+    } catch (error) {
       throw error;
     }
   },
 
+  // Token refresh
+  refreshToken: async (refreshToken) => {
+    try {
+      if (!refreshToken) {
+        throw new Error('Refresh token is required');
+      }
+
+      // Verify refresh token
+      const decoded = jwt.verifyRefreshToken(refreshToken);
+      
+      // Find user
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        throw new Error('Invalid refresh token');
+      }
+
+      // Generate new access token
+      const newAccessToken = jwt.generateAccessToken({ 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
+      });
+
+      return {
+        accessToken: newAccessToken,
+        user: user.toJSON()
+      };
+    } catch (error) {
+>>>>>>> Stashed changes
+      throw error;
+    }
+  },
+
+<<<<<<< Updated upstream
   // Logout (revoke refresh token)
   logout: async (refreshToken) => {
     try {
@@ -175,14 +310,40 @@ const authService = {
       return true;
     } catch (error) {
       logger.error('Logout error:', error);
+=======
+  // Validate user by ID (for middleware)
+  validateUser: async (userId) => {
+    try {
+      const user = await User.findById(userId);
+      return user ? user.toJSON() : null;
+    } catch (error) {
+>>>>>>> Stashed changes
       throw error;
     }
   },
 
+<<<<<<< Updated upstream
   // Password reset (placeholder for future implementation)
   resetPassword: async (email) => {
     // Implementation needed for email-based password reset
     throw new Error('Password reset not implemented yet');
+=======
+  // Password reset (basic implementation)
+  resetPassword: async (email) => {
+    try {
+      const user = await User.findByEmail(email.toLowerCase().trim());
+      if (!user) {
+        // Don't reveal if email exists for security
+        return { message: 'If the email exists, a reset link has been sent' };
+      }
+
+      // TODO: Implement password reset token generation and email sending
+      // For now, just return success message
+      return { message: 'If the email exists, a reset link has been sent' };
+    } catch (error) {
+      throw error;
+    }
+>>>>>>> Stashed changes
   }
 };
 

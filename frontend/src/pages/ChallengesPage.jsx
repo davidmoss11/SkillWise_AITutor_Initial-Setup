@@ -1,59 +1,115 @@
-// TODO: Implement challenges browsing and participation page
 import React, { useState, useEffect } from 'react';
 import ChallengeCard from '../components/challenges/ChallengeCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import challengeService from '../services/challenges';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
   const [filteredChallenges, setFilteredChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
     search: ''
   });
 
-  // Mock data - TODO: Replace with API call
+  // Load challenges and categories on mount
   useEffect(() => {
+    loadChallenges();
+    loadCategories();
+  }, []);
+
+  // Load challenges from API
+  const loadChallenges = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await challengeService.getChallenges(filters);
+      setChallenges(response.data || []);
+      setFilteredChallenges(response.data || []);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error loading challenges:', err);
+      // Fallback to mock data if API fails
+      loadMockData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load categories from API
+  const loadCategories = async () => {
+    try {
+      const response = await challengeService.getCategories();
+      setCategories(response.data || []);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+      // Fallback categories
+      setCategories([
+        'Programming',
+        'Web Development', 
+        'Mobile Development',
+        'Data Science',
+        'DevOps',
+        'Design',
+        'Database'
+      ]);
+    }
+  };
+
+  // Fallback mock data
+  const loadMockData = () => {
     const mockChallenges = [
       {
         id: 1,
         title: 'Build a React Component',
         description: 'Create a reusable React component with props and state management.',
         category: 'Programming',
-        difficulty: 'Medium',
+        difficulty: 'medium',
         points: 50,
-        estimatedTime: 45,
-        tags: ['React', 'JavaScript', 'Frontend']
+        estimated_time: 45,
+        tags: ['React', 'JavaScript', 'Frontend'],
+        status: 'active'
       },
       {
         id: 2,
-        title: 'Design a Logo',
-        description: 'Design a professional logo using design principles and color theory.',
-        category: 'Design',
-        difficulty: 'Easy',
-        points: 30,
-        estimatedTime: 60,
-        tags: ['Design', 'Branding', 'Creative']
+        title: 'API Integration Challenge',
+        description: 'Build a REST API client that handles authentication and error cases.',
+        category: 'Web Development',
+        difficulty: 'hard',
+        points: 75,
+        estimated_time: 90,
+        tags: ['API', 'HTTP', 'Authentication'],
+        status: 'active'
       },
       {
         id: 3,
-        title: 'Database Optimization',
+        title: 'Database Query Optimization',
         description: 'Optimize a slow database query and improve performance metrics.',
-        category: 'Backend',
-        difficulty: 'Hard',
+        category: 'Database',
+        difficulty: 'hard',
         points: 100,
-        estimatedTime: 120,
-        tags: ['SQL', 'Database', 'Performance']
+        estimated_time: 120,
+        tags: ['SQL', 'Database', 'Performance'],
+        status: 'active'
+      },
+      {
+        id: 4,
+        title: 'CSS Flexbox Layout',
+        description: 'Create a responsive layout using CSS Flexbox properties.',
+        category: 'Web Development',
+        difficulty: 'easy',
+        points: 25,
+        estimated_time: 30,
+        tags: ['CSS', 'Layout', 'Responsive'],
+        status: 'active'
       }
     ];
-
-    setTimeout(() => {
-      setChallenges(mockChallenges);
-      setFilteredChallenges(mockChallenges);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    
+    setChallenges(mockChallenges);
+    setFilteredChallenges(mockChallenges);
+  };
 
   // Filter challenges based on current filters
   useEffect(() => {
@@ -72,10 +128,13 @@ const ChallengesPage = () => {
     }
 
     if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(challenge =>
-        challenge.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.tags.some(tag => tag.toLowerCase().includes(filters.search.toLowerCase()))
+        challenge.title.toLowerCase().includes(searchLower) ||
+        challenge.description.toLowerCase().includes(searchLower) ||
+        (challenge.tags && challenge.tags.some(tag => 
+          tag.toLowerCase().includes(searchLower)
+        ))
       );
     }
 
@@ -89,79 +148,105 @@ const ChallengesPage = () => {
     }));
   };
 
+  const clearFilters = () => {
+    setFilters({
+      category: '',
+      difficulty: '',
+      search: ''
+    });
+  };
+
+  const handleStartChallenge = async (challengeId) => {
+    try {
+      await challengeService.startChallenge(challengeId);
+      // Could redirect to challenge detail page or show success message
+      alert('Challenge started! Good luck!');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="challenges-page">
       <div className="page-header">
-        <h1>Learning Challenges</h1>
-        <p>Enhance your skills with hands-on learning experiences</p>
+        <h1>Coding Challenges</h1>
+        <p>Test your skills and earn points with our curated challenges</p>
       </div>
 
+      {error && (
+        <div className="error-banner">
+          <p>{error}</p>
+          <button onClick={() => setError(null)} className="btn-link">Dismiss</button>
+        </div>
+      )}
+
       <div className="challenges-filters">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label htmlFor="search">Search Challenges</label>
-            <input
-              type="text"
-              id="search"
-              placeholder="Search by title, description, or tags..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="category">Category</label>
-            <select
-              id="category"
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-            >
-              <option value="">All Categories</option>
-              <option value="programming">Programming</option>
-              <option value="design">Design</option>
-              <option value="backend">Backend</option>
-              <option value="data-science">Data Science</option>
-              <option value="business">Business</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="difficulty">Difficulty</label>
-            <select
-              id="difficulty"
-              value={filters.difficulty}
-              onChange={(e) => handleFilterChange('difficulty', e.target.value)}
-            >
-              <option value="">All Levels</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
+        <div className="filter-group">
+          <input
+            type="text"
+            placeholder="Search challenges..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            className="search-input"
+          />
         </div>
 
-        <div className="results-summary">
-          <p>Showing {filteredChallenges.length} of {challenges.length} challenges</p>
+        <div className="filter-group">
+          <select
+            value={filters.category}
+            onChange={(e) => handleFilterChange('category', e.target.value)}
+            className="filter-select"
+          >
+            <option value="">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
         </div>
+
+        <div className="filter-group">
+          <select
+            value={filters.difficulty}
+            onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+            className="filter-select"
+          >
+            <option value="">All Difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <button onClick={clearFilters} className="btn-secondary">
+          Clear Filters
+        </button>
       </div>
 
       <div className="challenges-content">
         {loading ? (
-          <LoadingSpinner message="Loading challenges..." />
-        ) : filteredChallenges.length > 0 ? (
-          <div className="challenges-grid">
-            {filteredChallenges.map(challenge => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
-            ))}
+          <div className="loading-state">
+            <p>Loading challenges...</p>
           </div>
+        ) : filteredChallenges.length > 0 ? (
+          <>
+            <div className="challenges-stats">
+              <p>Showing {filteredChallenges.length} of {challenges.length} challenges</p>
+            </div>
+            <div className="challenges-grid">
+              {filteredChallenges.map(challenge => (
+                <ChallengeCard 
+                  key={challenge.id} 
+                  challenge={challenge}
+                  onStart={handleStartChallenge}
+                />
+              ))}
+            </div>
+          </>
         ) : (
           <div className="empty-state">
             <h3>No challenges found</h3>
-            <p>Try adjusting your filters or search terms.</p>
-            <button 
-              className="btn-secondary"
-              onClick={() => setFilters({ category: '', difficulty: '', search: '' })}
-            >
+            <p>Try adjusting your filters or search terms</p>
+            <button onClick={clearFilters} className="btn-primary">
               Clear Filters
             </button>
           </div>

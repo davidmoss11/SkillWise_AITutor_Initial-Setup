@@ -6,13 +6,16 @@ export const authService = {
   async login(email, password) {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token, refreshToken, user } = response.data;
+      const { data } = response.data; // Backend returns data nested
+      const { accessToken, user } = data;
       
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('refreshToken', refreshToken);
+      // Store token using the API utility
+      if (accessToken) {
+        localStorage.setItem('authToken', accessToken);
+      }
       localStorage.setItem('user', JSON.stringify(user));
       
-      return { token, refreshToken, user };
+      return { token: accessToken, user };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Login failed');
     }
@@ -22,7 +25,16 @@ export const authService = {
   async register(userData) {
     try {
       const response = await api.post('/auth/register', userData);
-      return response.data;
+      const { data } = response.data; // Backend returns data nested
+      const { accessToken, user } = data;
+      
+      // Store token and user info
+      if (accessToken) {
+        localStorage.setItem('authToken', accessToken);
+      }
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      return { token: accessToken, user };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }

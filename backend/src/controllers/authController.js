@@ -1,4 +1,7 @@
+<<<<<<< Updated upstream
 // Authentication controller with login, register, logout, refresh token endpoints
+=======
+>>>>>>> Stashed changes
 const authService = require('../services/authService');
 const { z } = require('zod');
 const pino = require('pino');
@@ -23,6 +26,7 @@ const registerSchema = z.object({
 });
 
 const authController = {
+<<<<<<< Updated upstream
   // Login endpoint
   login: async (req, res, next) => {
     try {
@@ -80,6 +84,53 @@ const authController = {
       // Register user
       const result = await authService.register(validatedData);
       
+=======
+  // User registration
+  register: async (req, res, next) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+
+      // Validate required fields
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required',
+          errors: {
+            email: !email ? 'Email is required' : null,
+            password: !password ? 'Password is required' : null,
+            firstName: !firstName ? 'First name is required' : null,
+            lastName: !lastName ? 'Last name is required' : null
+          }
+        });
+      }
+
+      // Additional validation
+      const emailRegex = /\S+@\S+\.\S+/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please enter a valid email address',
+          errors: { email: 'Please enter a valid email address' }
+        });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must be at least 8 characters long',
+          errors: { password: 'Password must be at least 8 characters long' }
+        });
+      }
+
+      // Create user
+      const result = await authService.register({
+        email,
+        password,
+        firstName,
+        lastName
+      });
+
+>>>>>>> Stashed changes
       // Set refresh token as httpOnly cookie
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
@@ -87,16 +138,24 @@ const authController = {
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
+<<<<<<< Updated upstream
       
       // Return user data and access token
       res.status(201).json({
         success: true,
         message: 'Registration successful',
+=======
+
+      res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+>>>>>>> Stashed changes
         data: {
           user: result.user,
           accessToken: result.accessToken
         }
       });
+<<<<<<< Updated upstream
       
     } catch (error) {
       logger.error('Register controller error:', error);
@@ -114,10 +173,26 @@ const authController = {
       res.status(statusCode).json({
         success: false,
         message: error.message || 'Registration failed'
+=======
+    } catch (error) {
+      if (error.message.includes('already exists')) {
+        return res.status(409).json({
+          success: false,
+          message: error.message,
+          errors: { email: error.message }
+        });
+      }
+
+      console.error('Registration error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during registration'
+>>>>>>> Stashed changes
       });
     }
   },
 
+<<<<<<< Updated upstream
   // Logout endpoint
   logout: async (req, res, next) => {
     try {
@@ -129,10 +204,76 @@ const authController = {
       // Clear refresh token cookie
       res.clearCookie('refreshToken');
       
+=======
+  // User login
+  login: async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email and password are required',
+          errors: {
+            email: !email ? 'Email is required' : null,
+            password: !password ? 'Password is required' : null
+          }
+        });
+      }
+
+      // Authenticate user
+      const result = await authService.login(email, password);
+
+      // Set refresh token as httpOnly cookie
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.json({
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: result.user,
+          accessToken: result.accessToken
+        }
+      });
+    } catch (error) {
+      if (error.message === 'Invalid credentials') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+          errors: { credentials: 'Invalid email or password' }
+        });
+      }
+
+      console.error('Login error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during login'
+      });
+    }
+  },
+
+  // User logout
+  logout: async (req, res, next) => {
+    try {
+      // Clear refresh token cookie
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+
+>>>>>>> Stashed changes
       res.json({
         success: true,
         message: 'Logout successful'
       });
+<<<<<<< Updated upstream
       
     } catch (error) {
       logger.error('Logout controller error:', error);
@@ -140,29 +281,51 @@ const authController = {
       res.status(500).json({
         success: false,
         message: 'Logout failed'
+=======
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during logout'
+>>>>>>> Stashed changes
       });
     }
   },
 
+<<<<<<< Updated upstream
   // Refresh token endpoint
   refreshToken: async (req, res, next) => {
     try {
       const refreshToken = req.cookies.refreshToken;
       
+=======
+  // Refresh access token
+  refreshToken: async (req, res, next) => {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+
+>>>>>>> Stashed changes
       if (!refreshToken) {
         return res.status(401).json({
           success: false,
           message: 'Refresh token not provided'
         });
       }
+<<<<<<< Updated upstream
       
       // Generate new access token
       const result = await authService.refreshToken(refreshToken);
       
+=======
+
+      const result = await authService.refreshToken(refreshToken);
+
+>>>>>>> Stashed changes
       res.json({
         success: true,
         message: 'Token refreshed successfully',
         data: {
+<<<<<<< Updated upstream
           accessToken: result.accessToken
         }
       });
@@ -173,6 +336,50 @@ const authController = {
       res.status(401).json({
         success: false,
         message: error.message || 'Token refresh failed'
+=======
+          accessToken: result.accessToken,
+          user: result.user
+        }
+      });
+    } catch (error) {
+      // Clear invalid refresh token
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+
+      if (error.message.includes('Invalid') || error.message.includes('expired')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired refresh token'
+        });
+      }
+
+      console.error('Token refresh error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during token refresh'
+      });
+    }
+  },
+
+  // Get current user profile
+  getProfile: async (req, res, next) => {
+    try {
+      // User is attached to req by auth middleware
+      res.json({
+        success: true,
+        data: {
+          user: req.user
+        }
+      });
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+>>>>>>> Stashed changes
       });
     }
   }

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -170,6 +171,155 @@ const DashboardOverview = () => {
               </Link>
             </div>
           )}
+=======
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
+const DashboardOverview = () => {
+  const [stats, setStats] = useState({
+    goalsCompleted: 0,
+    challengesCompleted: 0,
+    currentStreak: 0,
+    totalPoints: 0
+  });
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    // Set personalized greeting based on time of day
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting('Good morning! Ready to learn something amazing today?');
+    } else if (hour < 17) {
+      setGreeting('Good afternoon! Let\'s keep that momentum going!');
+    } else {
+      setGreeting('Good evening! Perfect time for some skill building!');
+    }
+
+    // TODO: Fetch real stats from API
+    // For now, we'll use placeholder data
+    setStats({
+      goalsCompleted: 3,
+      challengesCompleted: 12,
+      currentStreak: 5,
+      totalPoints: 250
+    });
+  }, []);
+
+  const StatCard = ({ icon, title, value, subtitle, color = 'blue' }) => (
+    <div className={`stat-card stat-card-${color}`}>
+      <div className="stat-icon">{icon}</div>
+      <div className="stat-content">
+        <h3>{title}</h3>
+        <p className="stat-number">{value}</p>
+        {subtitle && <p className="stat-subtitle">{subtitle}</p>}
+      </div>
+    </div>
+  );
+
+  const QuickAction = ({ icon, title, description, to, color = 'primary' }) => (
+    <Link to={to} className={`quick-action quick-action-${color}`}>
+      <div className="action-icon">{icon}</div>
+      <div className="action-content">
+        <h4>{title}</h4>
+        <p>{description}</p>
+      </div>
+      <span className="action-arrow">→</span>
+    </Link>
+  );
+
+  return (
+    <div className="dashboard-overview">
+      <div className="welcome-section">
+        <h1>
+          <span className="wave">👋</span> Welcome back to SkillWise!
+        </h1>
+        <p className="greeting">{greeting}</p>
+      </div>
+      
+      <div className="stats-grid">
+        <StatCard
+          icon="🎯"
+          title="Goals Completed"
+          value={stats.goalsCompleted}
+          subtitle="Keep going!"
+          color="green"
+        />
+        
+        <StatCard
+          icon="💪"
+          title="Challenges Solved"
+          value={stats.challengesCompleted}
+          subtitle="You're on fire!"
+          color="blue"
+        />
+        
+        <StatCard
+          icon="🔥"
+          title="Learning Streak"
+          value={`${stats.currentStreak} days`}
+          subtitle="Don't break it!"
+          color="orange"
+        />
+
+        <StatCard
+          icon="⭐"
+          title="Total Points"
+          value={stats.totalPoints}
+          subtitle="Level up soon!"
+          color="purple"
+        />
+      </div>
+
+      <div className="dashboard-sections">
+        <section className="quick-actions">
+          <h2>🚀 Quick Actions</h2>
+          <div className="actions-grid">
+            <QuickAction
+              icon="🎯"
+              title="Set New Goal"
+              description="Define what you want to learn next"
+              to="/goals"
+              color="primary"
+            />
+            
+            <QuickAction
+              icon="💻"
+              title="Take Challenge"
+              description="Practice with coding challenges"
+              to="/challenges"
+              color="secondary"
+            />
+            
+            <QuickAction
+              icon="📊"
+              title="View Progress"
+              description="See how far you've come"
+              to="/progress"
+              color="success"
+            />
+            
+            <QuickAction
+              icon="🏆"
+              title="Leaderboard"
+              description="See how you rank"
+              to="/leaderboard"
+              color="warning"
+            />
+          </div>
+        </section>
+
+        <section className="motivation-section">
+          <div className="motivation-card">
+            <h3>💪 You're doing great!</h3>
+            <p>
+              "The expert in anything was once a beginner. Every pro was once an amateur. 
+              Every icon was once an unknown." Keep pushing forward! 🌟
+            </p>
+            <div className="motivation-stats">
+              <span>🎉 You've completed {stats.challengesCompleted} challenges this month!</span>
+            </div>
+          </div>
+>>>>>>> Stashed changes
         </section>
       </div>
 

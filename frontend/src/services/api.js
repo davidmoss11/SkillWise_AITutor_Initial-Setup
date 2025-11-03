@@ -11,7 +11,7 @@ const api = axios.create({
 });
 
 // Token management utilities
-const TOKEN_KEY = 'access_token';
+const TOKEN_KEY = 'authToken';
 
 const getAccessToken = () => {
   return localStorage.getItem(TOKEN_KEY);

@@ -1,6 +1,6 @@
-# SkillWise AI Tutor 🎓
+# SkillWise Learning Platform 🎓
 
-An intelligent AI-powered tutoring platform built with React, Node.js, and PostgreSQL.
+A collaborative learning platform built with React, Node.js, and PostgreSQL.
 
 ## 🚀 Quick Start
 
@@ -221,7 +221,6 @@ SkillWise_AITutor/
 - **JWT** - Authentication
 - **Zod** - Schema validation
 - **Pino** - Structured logging
-- **OpenAI API** - AI capabilities
 
 ### Development
 

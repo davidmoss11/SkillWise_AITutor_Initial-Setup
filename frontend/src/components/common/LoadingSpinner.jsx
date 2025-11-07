@@ -1,8 +1,7 @@
-// TODO: Implement loading spinner component
 import React from 'react';
+import './LoadingSpinner.css';
 
 const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
-  // TODO: Add different spinner sizes and animations
   return (
     <div className={`loading-spinner ${size}`}>
       <div className="spinner"></div>

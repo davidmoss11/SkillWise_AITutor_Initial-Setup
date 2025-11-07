@@ -1,5 +1,8 @@
 # SkillWise Learning Platform 🎓
 
+[![CI Pipeline](https://github.com/davidmoss11/SkillWise_AITutor_Initial-Setup/actions/workflows/ci.yml/badge.svg)](https://github.com/davidmoss11/SkillWise_AITutor_Initial-Setup/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/davidmoss11/SkillWise_AITutor_Initial-Setup/branch/main/graph/badge.svg)](https://codecov.io/gh/davidmoss11/SkillWise_AITutor_Initial-Setup)
+
 A collaborative learning platform built with React, Node.js, and PostgreSQL.
 
 ## 🚀 Quick Start
@@ -243,8 +246,29 @@ docker-compose exec backend npm test
 # Frontend tests
 docker-compose exec frontend npm test
 
+# E2E tests with Cypress
+cd frontend
+npm run cypress:open  # Interactive mode
+npm run cypress:run   # Headless mode
+
 # Run with coverage
 docker-compose exec backend npm run test:coverage
+
+# Lint code
+cd backend && npm run lint
+cd frontend && npm run lint
+```
+
+### Continuous Integration
+
+This project uses GitHub Actions for automated testing on every pull request:
+
+- ✅ **Lint Checks** - ESLint for both frontend and backend
+- ✅ **Unit Tests** - Jest tests with coverage reports
+- ✅ **E2E Tests** - Cypress smoke tests
+- ✅ **Build Verification** - Production build check
+
+See [CI/CD Documentation](docs/CI_CD.md) for details
 docker-compose exec frontend npm run test:coverage
 ```
 

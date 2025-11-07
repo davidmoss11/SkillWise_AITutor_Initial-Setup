@@ -1,14 +1,15 @@
-// TODO: Test environment setup and configuration
+// Test environment setup and configuration
 const { Pool } = require('pg');
 
-// Test database configuration
+// Test database configuration - use the same database as dev but with cleanup
 const testDbConfig = {
-  connectionString: process.env.TEST_DATABASE_URL || 
-    'postgresql://skillwise_user:skillwise_pass@localhost:5432/skillwise_test_db',
+  connectionString: process.env.DATABASE_URL || 
+    process.env.TEST_DATABASE_URL || 
+    'postgresql://skillwise_user:skillwise_pass@database:5432/skillwise_db',
   // Reduce connections for test environment
   max: 5,
   idleTimeoutMillis: 10000,
-  connectionTimeoutMillis: 1000,
+  connectionTimeoutMillis: 2000,
 };
 
 const testPool = new Pool(testDbConfig);
@@ -70,8 +71,27 @@ const clearTestData = async () => {
   }
 };
 
+// Helper function to clear only goals and challenges (not users) between tests
+const clearGoalsAndChallenges = async () => {
+  const tables = [
+    'submissions',
+    'challenges',
+    'goals'
+  ];
+
+  for (const table of tables) {
+    try {
+      await testPool.query(`DELETE FROM ${table}`);
+    } catch (err) {
+      // Table might not exist, continue
+      console.warn(`Warning: Could not clear table ${table}:`, err.message);
+    }
+  }
+};
+
 // Export test utilities
 module.exports = {
   testPool,
-  clearTestData
+  clearTestData,
+  clearGoalsAndChallenges
 };

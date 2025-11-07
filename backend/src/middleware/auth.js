@@ -28,7 +28,7 @@ const auth = async (req, res, next) => {
 
     // Load user from DB
     const result = await db.query(
-      'SELECT id, email, role, password_changed_at FROM users WHERE id = $1',
+      'SELECT id, email, role FROM users WHERE id = $1',
       [decoded.id]
     );
     const user = result.rows[0];
@@ -36,19 +36,7 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    // If password_changed_at exists, ensure token iat is newer
-    if (user.password_changed_at) {
-      const pwdChangedAtSec = Math.floor(
-        new Date(user.password_changed_at).getTime() / 1000
-      );
-      if (decoded.iat && pwdChangedAtSec > decoded.iat) {
-        return res.status(401).json({
-          error: 'User changed password recently. Please login again.',
-        });
-      }
-    }
-
-    req.user = { id: user.id, email: user.email, role: user.role };
+    req.user = { id: user.id, email: user.email, role: user.role || 'student' };
     return next();
   } catch (err) {
     console.error('Auth middleware error', err);

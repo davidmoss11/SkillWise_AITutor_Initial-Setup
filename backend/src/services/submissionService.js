@@ -1,96 +1,51 @@
-// Submission business logic// TODO: Implement submission business logic
+// Submission service - business logic for challenge submissions
+const db = require('../database/connection');
+const Challenge = require('../models/Challenge');
 
-const db = require('../database/connection');const submissionService = {
-
-const Challenge = require('../models/Challenge');  // TODO: Submit challenge solution
-
-  submitSolution: async (submissionData) => {
-
-const submissionService = {    // Implementation needed
-
-  // Create a new submission for a challenge    throw new Error('Not implemented');
-
-  createSubmission: async (challengeId, userId, submissionData) => {  },
-
+const submissionService = {
+  // Create a new submission
+  createSubmission: async (challengeId, userId, submissionData) => {
     try {
+      // Verify challenge exists
+      const challenge = await Challenge.findById(challengeId);
+      if (!challenge) {
+        throw new Error('Challenge not found');
+      }
 
-      const challenge = await Challenge.findById(challengeId);  // TODO: Get submission by ID
+      const { submission_text, submission_url, notes } = submissionData;
 
-      if (!challenge) {  getSubmissionById: async (submissionId) => {
-
-        throw new Error('Challenge not found');    // Implementation needed
-
-      }    throw new Error('Not implemented');
-
-  },
-
-      const { submission_text, submission_url } = submissionData;
-
-  // TODO: Get user submissions
-
-      const query = `  getUserSubmissions: async (userId) => {
-
-        INSERT INTO submissions (    // Implementation needed
-
-          challenge_id,    throw new Error('Not implemented');
-
-          user_id,  },
-
-          submission_text,
-
-          submission_url,  // TODO: Get challenge submissions
-
-          status,  getChallengeSubmissions: async (challengeId) => {
-
-          submitted_at,    // Implementation needed
-
-          created_at,    throw new Error('Not implemented');
-
-          updated_at  },
-
-        )
-
-        VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), NOW())  // TODO: Grade submission
-
-        RETURNING *,   gradeSubmission: async (submissionId) => {
-
-          (SELECT goal_id FROM challenges WHERE id = $1) as goal_id    // Implementation needed
-
-      `;    throw new Error('Not implemented');
-
-  },
+      const query = `
+        INSERT INTO submissions (challenge_id, user_id, submission_text, submission_url, notes, status)
+        VALUES ($1, $2, $3, $4, $5, 'pending')
+        RETURNING id, challenge_id, user_id, submission_text, submission_url, notes, status, score, 
+                  submitted_at, reviewed_at,
+                  (SELECT goal_id FROM challenges WHERE id = $1) as goal_id
+      `;
 
       const result = await db.query(query, [
+        challengeId,
+        userId,
+        submission_text || null,
+        submission_url || null,
+        notes || null
+      ]);
 
-        challengeId,  // TODO: Update submission status
-
-        userId,  updateSubmissionStatus: async (submissionId, status) => {
-
-        submission_text,    // Implementation needed
-
-        submission_url,    throw new Error('Not implemented');
-
-        'submitted'  }
-
-      ]);};
-
-
-
-      return result.rows[0];module.exports = submissionService;
+      return result.rows[0];
     } catch (error) {
       throw new Error(`Failed to create submission: ${error.message}`);
     }
   },
 
-  // Get submission by ID
+  // Get submission by ID with access control
   getSubmissionById: async (submissionId, userId) => {
     try {
       const query = `
-        SELECT s.*, c.title as challenge_title, c.goal_id
+        SELECT s.*, 
+               (SELECT goal_id FROM challenges WHERE id = s.challenge_id) as goal_id
         FROM submissions s
-        JOIN challenges c ON s.challenge_id = c.id
         WHERE s.id = $1
       `;
+
       const result = await db.query(query, [submissionId]);
 
       if (result.rows.length === 0) {
@@ -99,14 +54,14 @@ const submissionService = {    // Implementation needed
 
       const submission = result.rows[0];
 
-      // Check if user has access to this submission
+      // Access control: user can only access their own submissions
       if (submission.user_id !== userId) {
         throw new Error('Access denied');
       }
 
       return submission;
     } catch (error) {
-      throw new Error(`Failed to get submission: ${error.message}`);
+      throw error;
     }
   },
 
@@ -114,24 +69,27 @@ const submissionService = {    // Implementation needed
   getUserSubmissions: async (userId, filters = {}) => {
     try {
       let query = `
-        SELECT s.*, c.title as challenge_title, c.goal_id
+        SELECT s.*,
+               c.title as challenge_title,
+               (SELECT goal_id FROM challenges WHERE id = s.challenge_id) as goal_id
         FROM submissions s
         JOIN challenges c ON s.challenge_id = c.id
         WHERE s.user_id = $1
       `;
+
       const params = [userId];
-      let paramCount = 2;
+      let paramCount = 1;
 
       if (filters.challengeId) {
+        paramCount++;
         query += ` AND s.challenge_id = $${paramCount}`;
         params.push(filters.challengeId);
-        paramCount++;
       }
 
       if (filters.status) {
+        paramCount++;
         query += ` AND s.status = $${paramCount}`;
         params.push(filters.status);
-        paramCount++;
       }
 
       query += ' ORDER BY s.submitted_at DESC';
@@ -143,13 +101,13 @@ const submissionService = {    // Implementation needed
     }
   },
 
-  // Get submissions for a specific challenge
+  // Get all submissions for a specific challenge
   getChallengeSubmissions: async (challengeId, userId) => {
     try {
       const query = `
-        SELECT s.*, c.goal_id
+        SELECT s.*,
+               (SELECT goal_id FROM challenges WHERE id = s.challenge_id) as goal_id
         FROM submissions s
-        JOIN challenges c ON s.challenge_id = c.id
         WHERE s.challenge_id = $1 AND s.user_id = $2
         ORDER BY s.submitted_at DESC
       `;
@@ -161,73 +119,60 @@ const submissionService = {    // Implementation needed
     }
   },
 
-  // Update submission (status, feedback, score, etc.)
+  // Update submission (for grading/feedback)
   updateSubmission: async (submissionId, userId, updateData) => {
     try {
-      // First verify the submission exists and user has access
+      // First verify access
       await submissionService.getSubmissionById(submissionId, userId);
 
-      const { status, score, feedback } = updateData;
+      const { status, score, feedback, reviewer_notes } = updateData;
 
       const query = `
         UPDATE submissions
-        SET status = COALESCE($2, status),
-            score = COALESCE($3, score),
-            feedback = COALESCE($4, feedback),
-            updated_at = NOW()
-        WHERE id = $1
+        SET 
+          status = COALESCE($1, status),
+          score = COALESCE($2, score),
+          feedback = COALESCE($3, feedback),
+          reviewer_notes = COALESCE($4, reviewer_notes),
+          reviewed_at = CASE WHEN $1 IN ('completed', 'rejected') THEN NOW() ELSE reviewed_at END
+        WHERE id = $5
         RETURNING *,
-          (SELECT goal_id FROM challenges WHERE id = challenge_id) as goal_id
+                  (SELECT goal_id FROM challenges WHERE id = challenge_id) as goal_id
       `;
 
       const result = await db.query(query, [
-        submissionId,
-        status,
-        score,
-        feedback
+        status || null,
+        score || null,
+        feedback || null,
+        reviewer_notes || null,
+        submissionId
       ]);
 
       return result.rows[0];
     } catch (error) {
-      throw new Error(`Failed to update submission: ${error.message}`);
+      throw error;
     }
   },
 
-  // Grade a submission (simplified auto-grading)
+  // Auto-grade submission (simplified logic)
   gradeSubmission: async (submissionId) => {
     try {
-      // This is a simplified grading - in real app would use AI or test cases
-      const submission = await submissionService.getSubmissionById(submissionId);
+      const submission = await submissionService.getSubmissionById(submissionId, submission.user_id);
 
-      // Simple grading logic based on submission length
-      const textLength = submission.submission_text?.length || 0;
+      // Simplified auto-grading logic based on submission length
       let score = 0;
-      let feedback = '';
-
-      if (textLength < 50) {
-        score = 40;
-        feedback = 'Submission is too brief. Please provide more detail.';
-      } else if (textLength < 200) {
-        score = 70;
-        feedback = 'Good effort! Consider adding more explanation.';
-      } else {
-        score = 90;
-        feedback = 'Excellent work! Well detailed submission.';
+      if (submission.submission_text) {
+        const textLength = submission.submission_text.length;
+        if (textLength > 500) score = 90;
+        else if (textLength > 200) score = 70;
+        else score = 40;
       }
 
-      const query = `
-        UPDATE submissions
-        SET score = $2,
-            feedback = $3,
-            status = 'graded',
-            graded_at = NOW(),
-            updated_at = NOW()
-        WHERE id = $1
-        RETURNING *
-      `;
-
-      const result = await db.query(query, [submissionId, score, feedback]);
-      return result.rows[0];
+      return await submissionService.updateSubmission(
+        submissionId,
+        submission.user_id,
+        { status: 'completed', score }
+      );
     } catch (error) {
       throw new Error(`Failed to grade submission: ${error.message}`);
     }

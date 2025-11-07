@@ -136,6 +136,7 @@ const goalService = {
     } catch (error) {
       throw new Error(`Failed to calculate progress: ${error.message}`);
     }
+  },
   
   // Get goal with its challenges
   getGoalWithChallenges: async (goalId, userId) => {

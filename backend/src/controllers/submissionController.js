@@ -1,63 +1,38 @@
-// Work submission controller - handles challenge submissions// TODO: Implement work submission controller
-
-const submissionService = require('../services/submissionService');const submissionService = require('../services/submissionService');
-
+// Work submission controller - handles challenge submissions
+const submissionService = require('../services/submissionService');
 const Goal = require('../models/Goal');
 
 const submissionController = {
-
-const submissionController = {  // TODO: Submit work for challenge
-
-  // Submit work for a challenge  submitWork: async (req, res, next) => {
-
-  submitWork: async (req, res, next) => {    // Implementation needed
-
-    try {  },
-
+  // Submit work for challenge
+  submitWork: async (req, res, next) => {
+    try {
+      const { challengeId } = req.params;
       const userId = req.user.id;
+      const submissionData = req.body;
 
-      const { challengeId } = req.params;  // TODO: Get submission by ID
-
-      const submissionData = req.body;  getSubmission: async (req, res, next) => {
-
-    // Implementation needed
-
-      const submission = await submissionService.createSubmission(  },
-
+      const submission = await submissionService.createSubmission(
         parseInt(challengeId),
-
-        userId,  // TODO: Get user submissions
-
-        submissionData  getUserSubmissions: async (req, res, next) => {
-
-      );    // Implementation needed
-
-  },
+        userId,
+        submissionData
+      );
 
       res.status(201).json({
-
-        success: true,  // TODO: Update submission
-
-        data: submission,  updateSubmission: async (req, res, next) => {
-
-        message: 'Submission created successfully'    // Implementation needed
-
-      });  }
-
-    } catch (error) {};
-
-      if (error.message.includes('Challenge not found')) {
-
-        return res.status(404).json({module.exports = submissionController;
+        success: true,
+        message: 'Submission created successfully',
+        data: submission
+      });
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({
           success: false,
-          message: 'Challenge not found'
+          message: error.message
         });
       }
       next(error);
     }
   },
 
-  // Get submission by ID
+  // Get specific submission
   getSubmission: async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -67,8 +42,7 @@ const submissionController = {  // TODO: Submit work for challenge
 
       res.status(200).json({
         success: true,
-        data: submission,
-        message: 'Submission retrieved successfully'
+        data: submission
       });
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -87,28 +61,28 @@ const submissionController = {  // TODO: Submit work for challenge
     }
   },
 
-  // Get all user submissions
+  // Get all submissions for current user
   getUserSubmissions: async (req, res, next) => {
     try {
       const userId = req.user.id;
       const { challengeId, status } = req.query;
 
-      const submissions = await submissionService.getUserSubmissions(userId, {
-        challengeId: challengeId ? parseInt(challengeId) : null,
-        status
-      });
+      const filters = {};
+      if (challengeId) filters.challengeId = parseInt(challengeId);
+      if (status) filters.status = status;
+
+      const submissions = await submissionService.getUserSubmissions(userId, filters);
 
       res.status(200).json({
         success: true,
-        data: submissions,
-        message: 'Submissions retrieved successfully'
+        data: submissions
       });
     } catch (error) {
       next(error);
     }
   },
 
-  // Update submission status (mark as completed, etc.)
+  // Update submission (for grading/feedback)
   updateSubmission: async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -121,20 +95,15 @@ const submissionController = {  // TODO: Submit work for challenge
         updateData
       );
 
-      // If submission is marked as completed, update goal progress
+      // If submission is marked as completed, automatically update goal progress
       if (updateData.status === 'completed' && updatedSubmission.goal_id) {
-        try {
-          await Goal.updateProgressFromChallenges(updatedSubmission.goal_id);
-        } catch (progressError) {
-          console.error('Error updating goal progress:', progressError);
-          // Don't fail the submission update if progress update fails
-        }
+        await Goal.updateProgressFromChallenges(updatedSubmission.goal_id);
       }
 
       res.status(200).json({
         success: true,
-        data: updatedSubmission,
-        message: 'Submission updated successfully'
+        message: 'Submission updated successfully',
+        data: updatedSubmission
       });
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -153,7 +122,7 @@ const submissionController = {  // TODO: Submit work for challenge
     }
   },
 
-  // Get submissions for a specific challenge
+  // Get all submissions for a specific challenge
   getChallengeSubmissions: async (req, res, next) => {
     try {
       const { challengeId } = req.params;
@@ -166,8 +135,7 @@ const submissionController = {  // TODO: Submit work for challenge
 
       res.status(200).json({
         success: true,
-        data: submissions,
-        message: 'Challenge submissions retrieved successfully'
+        data: submissions
       });
     } catch (error) {
       next(error);

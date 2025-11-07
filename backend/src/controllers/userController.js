@@ -4,7 +4,6 @@ const userController = {
   // Get user profile
   getProfile: async (req, res, next) => {
     try {
-<<<<<<< Updated upstream
       const user = req.user;
       
       res.json({
@@ -24,27 +23,6 @@ const userController = {
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve profile'
-=======
-      // User is attached to req by auth middleware
-      const user = await User.findById(req.user.id);
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      res.json({
-        success: true,
-        data: user.toJSON()
-      });
-    } catch (error) {
-      console.error('Get profile error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error'
->>>>>>> Stashed changes
       });
     }
   },

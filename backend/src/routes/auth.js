@@ -3,17 +3,10 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-<<<<<<< Updated upstream
 // POST /login route
 router.post('/login', authController.login);
 
 // POST /register route
-=======
-// TODO: Add POST /login route
-router.post('/login', authController.login);
-
-// TODO: Add POST /register route
->>>>>>> Stashed changes
 router.post('/register', authController.register);
 
 // POST /logout route

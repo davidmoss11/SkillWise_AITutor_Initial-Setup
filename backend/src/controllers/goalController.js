@@ -203,6 +203,60 @@ const goalController = {
       }
       next(error);
     }
+  },
+
+  // Get goal with all its challenges
+  getGoalWithChallenges: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      
+      const goalWithChallenges = await goalService.getGoalWithChallenges(parseInt(id), userId);
+      
+      res.status(200).json({
+        success: true,
+        data: goalWithChallenges,
+        message: 'Goal with challenges retrieved successfully'
+      });
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          message: 'Goal not found'
+        });
+      }
+      if (error.message.includes('Access denied')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied'
+        });
+      }
+      next(error);
+    }
+  },
+
+  // Refresh goal progress from challenges
+  refreshProgress: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      
+      const updatedGoal = await goalService.refreshGoalProgress(parseInt(id), userId);
+      
+      res.status(200).json({
+        success: true,
+        data: updatedGoal,
+        message: 'Goal progress refreshed successfully'
+      });
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          message: 'Goal not found'
+        });
+      }
+      next(error);
+    }
   }
 };
 

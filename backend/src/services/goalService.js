@@ -136,6 +136,32 @@ const goalService = {
     } catch (error) {
       throw new Error(`Failed to calculate progress: ${error.message}`);
     }
+  
+  // Get goal with its challenges
+  getGoalWithChallenges: async (goalId, userId) => {
+    try {
+      const goal = await goalService.getGoalById(goalId, userId);
+      const challenges = await Goal.getChallenges(goalId);
+      
+      return {
+        ...goal,
+        challenges,
+        total_challenges: challenges.length
+      };
+    } catch (error) {
+      throw new Error(`Failed to get goal with challenges: ${error.message}`);
+    }
+  },
+
+  // Recalculate and update goal progress from challenges
+  refreshGoalProgress: async (goalId, userId) => {
+    try {
+      await goalService.getGoalById(goalId, userId); // Verify access
+      const updatedGoal = await Goal.updateProgressFromChallenges(goalId);
+      return updatedGoal;
+    } catch (error) {
+      throw new Error(`Failed to refresh goal progress: ${error.message}`);
+    }
   }
 };
 

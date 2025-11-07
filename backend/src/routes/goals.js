@@ -25,4 +25,10 @@ router.put('/:id/progress', auth, goalController.updateProgress);
 // GET /:id/progress - Get goal progress details
 router.get('/:id/progress', auth, goalController.getProgress);
 
+// GET /:id/challenges - Get goal with all its challenges
+router.get('/:id/challenges', auth, goalController.getGoalWithChallenges);
+
+// POST /:id/refresh-progress - Recalculate and update progress from challenges
+router.post('/:id/refresh-progress', auth, goalController.refreshProgress);
+
 module.exports = router;

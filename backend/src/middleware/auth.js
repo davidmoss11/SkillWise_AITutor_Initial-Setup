@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 // JWT authentication middleware
 const jwt = require('jsonwebtoken');
 const pool = require('../database/connection');
@@ -6,10 +5,6 @@ const { AppError } = require('./errorHandler');
 const pino = require('pino');
 
 const logger = pino({ name: 'auth-middleware' });
-=======
-﻿const jwt = require('jsonwebtoken');
-const User = require('../models/User');
->>>>>>> Stashed changes
 
 const auth = async (req, res, next) => {
   try {
@@ -31,24 +26,17 @@ const auth = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-<<<<<<< Updated upstream
     // Check if user still exists and is active
     const userQuery = 'SELECT id, email, first_name, last_name, role, is_active FROM users WHERE id = $1';
     const userResult = await pool.query(userQuery, [decoded.userId]);
     
     if (userResult.rows.length === 0) {
-=======
-    // Check if user still exists
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
->>>>>>> Stashed changes
       return res.status(401).json({
         success: false,
         message: 'The user belonging to this token does no longer exist.',
         code: 'USER_NOT_FOUND'
       });
     }
-<<<<<<< Updated upstream
 
     const currentUser = userResult.rows[0];
     
@@ -59,8 +47,6 @@ const auth = async (req, res, next) => {
         code: 'ACCOUNT_DEACTIVATED'
       });
     }
-=======
->>>>>>> Stashed changes
 
     // Grant access to protected route
     req.user = {
@@ -89,21 +75,13 @@ const auth = async (req, res, next) => {
       });
     }
     
-<<<<<<< Updated upstream
     return res.status(500).json({
       success: false,
       message: 'Authentication error'
-=======
-    console.error('Auth middleware error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error during authentication'
->>>>>>> Stashed changes
     });
   }
 };
 
-<<<<<<< Updated upstream
 // Middleware to restrict access to specific roles
 const restrictTo = (...roles) => {
   return (req, res, next) => {
@@ -118,6 +96,4 @@ const restrictTo = (...roles) => {
   };
 };
 
-=======
->>>>>>> Stashed changes
 module.exports = auth;

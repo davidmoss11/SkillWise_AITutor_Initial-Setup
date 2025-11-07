@@ -8,7 +8,6 @@
  * - /api/challenges/*    - Challenge management and participation
  * - /api/progress/*      - Progress tracking and analytics
  * - /api/submissions/*   - Work submission and evaluation
- * - /api/ai/*           - AI-powered features (feedback, hints, suggestions)
  * - /api/reviews/*       - Peer review system
  * - /api/leaderboard/*   - Rankings and achievements
  * - /api/health         - API health check endpoint
@@ -24,7 +23,7 @@ const goalRoutes = require('./goals');
 const challengeRoutes = require('./challenges');
 const progressRoutes = require('./progress');
 const submissionRoutes = require('./submissions');
-const aiRoutes = require('./ai');
+// AI routes removed for Sprint 2 simplification
 const reviewRoutes = require('./reviews');
 const leaderboardRoutes = require('./leaderboard');
 
@@ -33,7 +32,7 @@ router.get('/', (req, res) => {
   res.json({
     name: 'SkillWise API',
     version: '1.0.0',
-    description: 'AI-powered learning platform API',
+  description: 'Learning platform API',
     endpoints: {
       auth: '/api/auth - Authentication endpoints',
       users: '/api/users - User management',
@@ -41,7 +40,6 @@ router.get('/', (req, res) => {
       challenges: '/api/challenges - Learning challenges',
       progress: '/api/progress - Progress tracking',
       submissions: '/api/submissions - Work submissions',
-      ai: '/api/ai - AI-powered features',
       reviews: '/api/reviews - Peer review system',
       leaderboard: '/api/leaderboard - Rankings and achievements',
       health: '/api/health - Health check'
@@ -58,7 +56,6 @@ router.use('/goals', goalRoutes);
 router.use('/challenges', challengeRoutes);
 router.use('/progress', progressRoutes);
 router.use('/submissions', submissionRoutes);
-router.use('/ai', aiRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/leaderboard', leaderboardRoutes);
 

@@ -1,30 +1,37 @@
-// TODO: Implement goal business logic and calculations
 const Goal = require('../models/Goal');
+const db = require('../database/connection');
 
-const goalService = {
-  // TODO: Get user goals with progress
-  getUserGoals: async (userId) => {
-    // Implementation needed
-    throw new Error('Not implemented');
+module.exports = {
+  async getUserGoals(userId) {
+    const goals = await Goal.findByUserId(userId);
+    // Attach challenges
+    const ids = goals.map(g => g.id);
+    if (ids.length === 0) return [];
+    const result = await db.query('SELECT * FROM challenges WHERE goal_id = ANY($1)', [ids]);
+    const byGoal = {};
+    result.rows.forEach(ch => {
+      byGoal[ch.goal_id] = byGoal[ch.goal_id] || [];
+      byGoal[ch.goal_id].push(ch);
+    });
+    return goals.map(g => ({ ...g, challenges: byGoal[g.id] || [] }));
   },
-
-  // TODO: Create new goal with validation
-  createGoal: async (goalData, userId) => {
-    // Implementation needed
-    throw new Error('Not implemented');
+  async createGoal(goalData, userId) {
+    return Goal.create({
+      title: goalData.title,
+      description: goalData.description || '',
+      user_id: userId,
+      target_completion_date: goalData.targetDate || null,
+      target_date: goalData.targetDate || null,
+      category: goalData.category || null,
+      difficulty_level: goalData.difficulty || 'medium'
+    });
   },
-
-  // TODO: Update goal progress
-  updateProgress: async (goalId, progress) => {
-    // Implementation needed
-    throw new Error('Not implemented');
+  async updateProgress(goalId, progress) {
+    return Goal.update(goalId, { progress_percentage: progress });
   },
-
-  // TODO: Calculate goal completion percentage
-  calculateCompletion: (goal) => {
-    // Implementation needed
-    return 0;
+  calculateCompletion(goal) {
+    const total = goal.challenges?.length || 0;
+    const done = goal.challenges?.filter(c => c.status === 'done').length || 0;
+    return total === 0 ? 0 : Math.round((done / total) * 100);
   }
 };
-
-module.exports = goalService;

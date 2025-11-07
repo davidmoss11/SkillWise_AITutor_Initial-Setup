@@ -17,7 +17,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
     const userResult = await testPool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role) 
        VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
-      ['goals.test@skillwise.com', hashedPassword, 'Goals', 'Tester', 'student']
+      ['goals.test@skillwise.com', hashedPassword, 'Goals', 'Tester', 'student'],
     );
     testUserId = userResult.rows[0].id;
 
@@ -26,7 +26,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
       .post('/api/auth/login')
       .send({
         email: 'goals.test@skillwise.com',
-        password: 'Test123!'
+        password: 'Test123!',
       });
 
     authToken = loginResponse.body.token;
@@ -43,7 +43,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         description: 'Master modern JavaScript ES6+',
         category: 'Programming',
         target_date: '2024-12-31',
-        priority: 'high'
+        priority: 'high',
       };
 
       const response = await request(app)
@@ -69,7 +69,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         .post('/api/goals')
         .send({
           title: 'Unauthorized Goal',
-          description: 'Should fail'
+          description: 'Should fail',
         });
 
       expect(response.status).toBe(401);
@@ -80,7 +80,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         .post('/api/goals')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          description: 'Missing title'
+          description: 'Missing title',
         });
 
       expect(response.status).toBe(400);
@@ -147,7 +147,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         title: 'Master JavaScript',
         description: 'Advanced JavaScript concepts',
         priority: 'medium',
-        progress: 25
+        progress: 25,
       };
 
       const response = await request(app)
@@ -180,7 +180,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
       await testPool.query(
         `INSERT INTO users (email, password_hash, first_name, last_name, role) 
          VALUES ($1, $2, $3, $4, $5)`,
-        ['other.user@skillwise.com', hashedPassword, 'Other', 'User', 'student']
+        ['other.user@skillwise.com', hashedPassword, 'Other', 'User', 'student'],
       );
 
       // Login as other user
@@ -188,7 +188,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         .post('/api/auth/login')
         .send({
           email: 'other.user@skillwise.com',
-          password: 'Test123!'
+          password: 'Test123!',
         });
 
       const otherToken = otherLoginResponse.body.token;
@@ -214,7 +214,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
         .send({
           title: 'Goal to Delete',
           description: 'Will be deleted',
-          category: 'Test'
+          category: 'Test',
         });
       deleteTestGoalId = response.body.id;
     });
@@ -246,7 +246,7 @@ describe('Goals API Integration - Story 2.7 Testing', () => {
           title: 'Full Workflow Test',
           description: 'Testing complete lifecycle',
           category: 'Testing',
-          priority: 'high'
+          priority: 'high',
         });
 
       expect(createResponse.status).toBe(201);

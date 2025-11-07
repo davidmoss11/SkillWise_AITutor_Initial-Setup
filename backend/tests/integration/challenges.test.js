@@ -18,7 +18,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
     const userResult = await testPool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role) 
        VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
-      ['challenges.test@skillwise.com', hashedPassword, 'Challenge', 'Tester', 'student']
+      ['challenges.test@skillwise.com', hashedPassword, 'Challenge', 'Tester', 'student'],
     );
     testUserId = userResult.rows[0].id;
 
@@ -27,7 +27,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
       .post('/api/auth/login')
       .send({
         email: 'challenges.test@skillwise.com',
-        password: 'Test123!'
+        password: 'Test123!',
       });
 
     authToken = loginResponse.body.token;
@@ -39,7 +39,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
       .send({
         title: 'Learn React',
         description: 'Master React fundamentals',
-        category: 'Programming'
+        category: 'Programming',
       });
 
     testGoalId = goalResponse.body.id;
@@ -59,7 +59,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         points: 100,
         estimated_time: '4 hours',
         goal_id: testGoalId,
-        tags: ['react', 'javascript', 'crud']
+        tags: ['react', 'javascript', 'crud'],
       };
 
       const response = await request(app)
@@ -89,7 +89,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
           title: 'Independent Challenge',
           description: 'Not linked to any goal',
           category: 'General',
-          difficulty: 'beginner'
+          difficulty: 'beginner',
         });
 
       expect(response.status).toBe(201);
@@ -101,7 +101,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         .post('/api/challenges')
         .send({
           title: 'Unauthorized Challenge',
-          description: 'Should fail'
+          description: 'Should fail',
         });
 
       expect(response.status).toBe(401);
@@ -112,7 +112,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         .post('/api/challenges')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          description: 'Missing title and category'
+          description: 'Missing title and category',
         });
 
       expect(response.status).toBe(400);
@@ -209,7 +209,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         title: 'Advanced Todo App',
         description: 'Enhanced todo app with authentication',
         difficulty: 'advanced',
-        points: 150
+        points: 150,
       };
 
       const response = await request(app)
@@ -258,7 +258,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
           title: 'Challenge to Delete',
           description: 'Will be deleted',
           category: 'Test',
-          difficulty: 'beginner'
+          difficulty: 'beginner',
         });
       deleteTestChallengeId = response.body.id;
     });
@@ -292,7 +292,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
           category: 'Testing',
           difficulty: 'intermediate',
           points: 50,
-          goal_id: testGoalId
+          goal_id: testGoalId,
         });
 
       expect(createResponse.status).toBe(201);
@@ -337,7 +337,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         .send({
           title: 'Master Node.js',
           description: 'Backend development',
-          category: 'Programming'
+          category: 'Programming',
         });
 
       const newGoalId = goalResponse.body.id;
@@ -351,7 +351,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
           description: 'Create Express REST API',
           category: 'Backend',
           difficulty: 'intermediate',
-          goal_id: newGoalId
+          goal_id: newGoalId,
         });
 
       expect(challengeResponse.status).toBe(201);
@@ -375,7 +375,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
         .send({
           title: 'Goal to Delete',
           description: 'Will be deleted with challenges',
-          category: 'Test'
+          category: 'Test',
         });
 
       const goalId = goalResponse.body.id;
@@ -388,7 +388,7 @@ describe('Challenges API Integration - Story 2.7 Testing', () => {
           description: 'Will be deleted with goal',
           category: 'Test',
           difficulty: 'beginner',
-          goal_id: goalId
+          goal_id: goalId,
         });
 
       const challengeId = challengeResponse.body.id;

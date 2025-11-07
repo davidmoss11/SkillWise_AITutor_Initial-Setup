@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
 
     const insert = await db.query(
       'INSERT INTO users (email, password_hash, first_name, last_name, created_at, updated_at) VALUES ($1, $2, $3, $4, now(), now()) RETURNING id, email, first_name, last_name, created_at',
-      [email, hashed, firstName, lastName]
+      [email, hashed, firstName, lastName],
     );
     const user = insert.rows[0];
 
@@ -44,20 +44,20 @@ router.post('/register', async (req, res) => {
       process.env.JWT_SECRET || 'dev-secret',
       {
         expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-      }
+      },
     );
 
     return res
       .status(201)
-      .json({ 
-        user: { 
-          id: user.id, 
+      .json({
+        user: {
+          id: user.id,
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
-          createdAt: user.created_at
-        }, 
-        accessToken 
+          createdAt: user.created_at,
+        },
+        accessToken,
       });
   } catch (err) {
     console.error('Register error', err);
@@ -76,7 +76,7 @@ router.post('/login', async (req, res) => {
 
     const result = await db.query(
       'SELECT id, email, password_hash FROM users WHERE email = $1',
-      [email]
+      [email],
     );
     const user = result.rows[0];
 
@@ -94,26 +94,26 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET || 'dev-secret',
       {
         expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-      }
+      },
     );
 
     // Fetch full user details
     const userDetails = await db.query(
       'SELECT id, email, first_name, last_name, created_at, updated_at FROM users WHERE id = $1',
-      [user.id]
+      [user.id],
     );
     const fullUser = userDetails.rows[0];
 
-    return res.json({ 
-      accessToken, 
-      user: { 
-        id: fullUser.id, 
+    return res.json({
+      accessToken,
+      user: {
+        id: fullUser.id,
         email: fullUser.email,
         firstName: fullUser.first_name,
         lastName: fullUser.last_name,
         createdAt: fullUser.created_at,
-        updatedAt: fullUser.updated_at
-      } 
+        updatedAt: fullUser.updated_at,
+      },
     });
   } catch (err) {
     console.error('Login error', err);

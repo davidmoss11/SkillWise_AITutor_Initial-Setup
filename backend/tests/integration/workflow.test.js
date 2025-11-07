@@ -1,9 +1,9 @@
 /**
  * Story 2.7 - Simple Workflow Integration Test
- * 
+ *
  * This simplified test demonstrates the complete workflow:
  * Login → Create Goal → Add Challenge → Mark Complete
- * 
+ *
  * Note: This test uses the actual API endpoints through supertest
  */
 
@@ -27,7 +27,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
     const userResult = await testPool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role) 
        VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
-      ['workflow.test@skillwise.com', hashedPassword, 'Workflow', 'Tester', 'student']
+      ['workflow.test@skillwise.com', hashedPassword, 'Workflow', 'Tester', 'student'],
     );
     testUser = userResult.rows[0];
   });
@@ -43,7 +43,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
         .post('/api/auth/login')
         .send({
           email: 'workflow.test@skillwise.com',
-          password: 'WorkflowTest123!'
+          password: 'WorkflowTest123!',
         });
 
       expect(response.status).toBe(200);
@@ -63,7 +63,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
         description: 'Master React, Node.js, and PostgreSQL',
         category: 'Programming',
         priority: 'high',
-        target_date: '2024-12-31'
+        target_date: '2024-12-31',
       };
 
       const response = await request(app)
@@ -94,7 +94,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
         points: 100,
         estimated_time: '6 hours',
         goal_id: createdGoal.id,
-        tags: ['express', 'postgresql', 'rest', 'api']
+        tags: ['express', 'postgresql', 'rest', 'api'],
       };
 
       const response = await request(app)
@@ -216,7 +216,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
     test('Challenge is linked to goal in database', async () => {
       const result = await testPool.query(
         'SELECT * FROM challenges WHERE id = $1',
-        [createdChallenge.id]
+        [createdChallenge.id],
       );
 
       expect(result.rows.length).toBe(1);
@@ -227,7 +227,7 @@ describe('Story 2.7 - Complete Workflow Integration', () => {
     test('Goal has correct completion status in database', async () => {
       const result = await testPool.query(
         'SELECT * FROM goals WHERE id = $1',
-        [createdGoal.id]
+        [createdGoal.id],
       );
 
       expect(result.rows.length).toBe(1);

@@ -29,7 +29,7 @@ const auth = async (req, res, next) => {
     // Load user from DB
     const result = await db.query(
       'SELECT id, email, role FROM users WHERE id = $1',
-      [decoded.id]
+      [decoded.id],
     );
     const user = result.rows[0];
     if (!user) {
@@ -50,12 +50,12 @@ const auth = async (req, res, next) => {
 // Simple role restriction helper
 const restrictTo =
   (...roles) =>
-  (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    next();
-  };
+    (req, res, next) => {
+      if (!req.user || !roles.includes(req.user.role)) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      next();
+    };
 
 module.exports = auth;
 module.exports.restrictTo = restrictTo;

@@ -5,12 +5,12 @@ const challengeController = {
   getChallenges: async (req, res, next) => {
     try {
       const userId = req.user.id;
-      const { 
-        category, 
-        difficulty, 
-        is_active, 
+      const {
+        category,
+        difficulty,
+        is_active,
         goal_id,
-        search 
+        search,
       } = req.query;
 
       let query = `
@@ -67,13 +67,13 @@ const challengeController = {
       res.json({
         success: true,
         challenges: result.rows,
-        count: result.rows.length
+        count: result.rows.length,
       });
     } catch (error) {
       console.error('Get challenges error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch challenges' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch challenges',
       });
     }
   },
@@ -92,25 +92,25 @@ const challengeController = {
          LEFT JOIN goals g ON c.goal_id = g.id
          LEFT JOIN users u ON c.created_by = u.id
          WHERE c.id = $1`,
-        [challengeId]
+        [challengeId],
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Challenge not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Challenge not found',
         });
       }
 
       res.json({
         success: true,
-        challenge: result.rows[0]
+        challenge: result.rows[0],
       });
     } catch (error) {
       console.error('Get challenge by ID error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch challenge' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch challenge',
       });
     }
   },
@@ -133,35 +133,35 @@ const challengeController = {
         goal_id,
         tags,
         prerequisites,
-        learning_objectives
+        learning_objectives,
       } = req.body;
 
       // Validation
       if (!title || title.trim().length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Title is required' 
+        return res.status(400).json({
+          success: false,
+          error: 'Title is required',
         });
       }
 
       if (!description || description.trim().length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Description is required' 
+        return res.status(400).json({
+          success: false,
+          error: 'Description is required',
         });
       }
 
       if (!instructions || instructions.trim().length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Instructions are required' 
+        return res.status(400).json({
+          success: false,
+          error: 'Instructions are required',
         });
       }
 
       if (!category || category.trim().length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Category is required' 
+        return res.status(400).json({
+          success: false,
+          error: 'Category is required',
         });
       }
 
@@ -169,13 +169,13 @@ const challengeController = {
       if (goal_id) {
         const goalCheck = await db.query(
           'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
-          [goal_id, userId]
+          [goal_id, userId],
         );
-        
+
         if (goalCheck.rows.length === 0) {
-          return res.status(404).json({ 
-            success: false, 
-            error: 'Goal not found or does not belong to you' 
+          return res.status(404).json({
+            success: false,
+            error: 'Goal not found or does not belong to you',
           });
         }
       }
@@ -203,20 +203,20 @@ const challengeController = {
           goal_id || null,
           tags || [],
           prerequisites || [],
-          learning_objectives || []
-        ]
+          learning_objectives || [],
+        ],
       );
 
       res.status(201).json({
         success: true,
         message: 'Challenge created successfully',
-        challenge: result.rows[0]
+        challenge: result.rows[0],
       });
     } catch (error) {
       console.error('Create challenge error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to create challenge' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create challenge',
       });
     }
   },
@@ -240,7 +240,7 @@ const challengeController = {
         goal_id,
         tags,
         prerequisites,
-        learning_objectives
+        learning_objectives,
       } = req.body;
 
       // Check if challenge exists and user has permission
@@ -249,23 +249,23 @@ const challengeController = {
          FROM challenges c
          LEFT JOIN goals g ON c.goal_id = g.id
          WHERE c.id = $1`,
-        [challengeId]
+        [challengeId],
       );
 
       if (existing.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Challenge not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Challenge not found',
         });
       }
 
       const challenge = existing.rows[0];
-      
+
       // User can only update if they created it or if it's linked to their goal
       if (challenge.created_by !== userId && challenge.goal_owner_id !== userId) {
-        return res.status(403).json({ 
-          success: false, 
-          error: 'You do not have permission to update this challenge' 
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to update this challenge',
         });
       }
 
@@ -276,9 +276,9 @@ const challengeController = {
 
       if (title !== undefined) {
         if (!title || title.trim().length === 0) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Title cannot be empty' 
+          return res.status(400).json({
+            success: false,
+            error: 'Title cannot be empty',
           });
         }
         updates.push(`title = $${paramIndex}`);
@@ -288,9 +288,9 @@ const challengeController = {
 
       if (description !== undefined) {
         if (!description || description.trim().length === 0) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Description cannot be empty' 
+          return res.status(400).json({
+            success: false,
+            error: 'Description cannot be empty',
           });
         }
         updates.push(`description = $${paramIndex}`);
@@ -300,9 +300,9 @@ const challengeController = {
 
       if (instructions !== undefined) {
         if (!instructions || instructions.trim().length === 0) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Instructions cannot be empty' 
+          return res.status(400).json({
+            success: false,
+            error: 'Instructions cannot be empty',
           });
         }
         updates.push(`instructions = $${paramIndex}`);
@@ -319,9 +319,9 @@ const challengeController = {
       if (difficulty_level !== undefined) {
         const validDifficulties = ['easy', 'medium', 'hard', 'expert'];
         if (!validDifficulties.includes(difficulty_level.toLowerCase())) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert' 
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert',
           });
         }
         updates.push(`difficulty_level = $${paramIndex}`);
@@ -364,13 +364,13 @@ const challengeController = {
           // Verify goal exists and belongs to user
           const goalCheck = await db.query(
             'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
-            [goal_id, userId]
+            [goal_id, userId],
           );
-          
+
           if (goalCheck.rows.length === 0) {
-            return res.status(404).json({ 
-              success: false, 
-              error: 'Goal not found or does not belong to you' 
+            return res.status(404).json({
+              success: false,
+              error: 'Goal not found or does not belong to you',
             });
           }
         }
@@ -398,9 +398,9 @@ const challengeController = {
       }
 
       if (updates.length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'No fields to update' 
+        return res.status(400).json({
+          success: false,
+          error: 'No fields to update',
         });
       }
 
@@ -422,13 +422,13 @@ const challengeController = {
       res.json({
         success: true,
         message: 'Challenge updated successfully',
-        challenge: result.rows[0]
+        challenge: result.rows[0],
       });
     } catch (error) {
       console.error('Update challenge error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to update challenge' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update challenge',
       });
     }
   },
@@ -445,23 +445,23 @@ const challengeController = {
          FROM challenges c
          LEFT JOIN goals g ON c.goal_id = g.id
          WHERE c.id = $1`,
-        [challengeId]
+        [challengeId],
       );
 
       if (existing.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Challenge not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Challenge not found',
         });
       }
 
       const challenge = existing.rows[0];
-      
+
       // User can only delete if they created it or if it's linked to their goal
       if (challenge.created_by !== userId && challenge.goal_owner_id !== userId) {
-        return res.status(403).json({ 
-          success: false, 
-          error: 'You do not have permission to delete this challenge' 
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to delete this challenge',
         });
       }
 
@@ -469,16 +469,16 @@ const challengeController = {
 
       res.json({
         success: true,
-        message: 'Challenge deleted successfully'
+        message: 'Challenge deleted successfully',
       });
     } catch (error) {
       console.error('Delete challenge error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to delete challenge' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete challenge',
       });
     }
-  }
+  },
 };
 
 module.exports = challengeController;

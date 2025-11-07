@@ -14,7 +14,7 @@ const { testPool, clearTestData } = require('../setup');
 const bcrypt = require('bcryptjs');
 
 describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', () => {
-  
+
   it('should complete the full workflow successfully', async () => {
     // Clean slate
     await clearTestData();
@@ -24,7 +24,7 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
     const userResult = await testPool.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role) 
        VALUES ($1, $2, $3, $4, $5) RETURNING id, email`,
-      ['smoke.test@skillwise.com', hashedPassword, 'Smoke', 'Test', 'student']
+      ['smoke.test@skillwise.com', hashedPassword, 'Smoke', 'Test', 'student'],
     );
     const userId = userResult.rows[0].id;
     console.log('✅ 1. Test user created:', userId);
@@ -34,9 +34,9 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
       .post('/api/auth/login')
       .send({
         email: 'smoke.test@skillwise.com',
-        password: 'SmokeTest123!'
+        password: 'SmokeTest123!',
       });
-    
+
     expect(loginRes.status).toBe(200);
     const token = loginRes.body.token;
     console.log('✅ 2. User logged in successfully');
@@ -49,9 +49,9 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
         title: 'Master TypeScript',
         description: 'Learn advanced TypeScript features',
         category: 'Programming',
-        priority: 'high'
+        priority: 'high',
       });
-    
+
     if (goalRes.status !== 201) {
       console.log('Goal creation failed:', goalRes.status, JSON.stringify(goalRes.body, null, 2));
       console.log('Token used:', token);
@@ -72,9 +72,9 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
         category: 'Backend',
         difficulty: 'intermediate',
         points: 100,
-        goal_id: goalId
+        goal_id: goalId,
       });
-    
+
     expect(challengeRes.status).toBe(201);
     const challengeId = challengeRes.body.id;
     expect(challengeRes.body.status).toBe('not_started');
@@ -86,7 +86,7 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
       .put(`/api/challenges/${challengeId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'in_progress' });
-    
+
     expect(startRes.status).toBe(200);
     expect(startRes.body.status).toBe('in_progress');
     console.log('✅ 5. Challenge started');
@@ -96,7 +96,7 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
       .put(`/api/challenges/${challengeId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'completed' });
-    
+
     expect(completeRes.status).toBe(200);
     expect(completeRes.body.status).toBe('completed');
     expect(completeRes.body.completed_at).toBeTruthy();
@@ -107,7 +107,7 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
       .put(`/api/goals/${goalId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ progress: 100 });
-    
+
     expect(updateGoalRes.status).toBe(200);
     expect(updateGoalRes.body.progress).toBe(100);
     expect(updateGoalRes.body.status).toBe('completed');
@@ -118,14 +118,14 @@ describe('Story 2.7 - Smoke Test: Login → Goal → Challenge → Complete', ()
     const verifyGoalRes = await request(app)
       .get(`/api/goals/${goalId}`)
       .set('Authorization', `Bearer ${token}`);
-    
+
     expect(verifyGoalRes.status).toBe(200);
     expect(verifyGoalRes.body.status).toBe('completed');
-    
+
     const verifyChallengeRes = await request(app)
       .get(`/api/challenges/${challengeId}`)
       .set('Authorization', `Bearer ${token}`);
-    
+
     expect(verifyChallengeRes.status).toBe(200);
     expect(verifyChallengeRes.body.status).toBe('completed');
     console.log('✅ 8. Data verified in database');

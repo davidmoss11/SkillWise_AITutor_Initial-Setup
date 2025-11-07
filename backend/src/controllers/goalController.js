@@ -36,13 +36,13 @@ const goalController = {
       res.json({
         success: true,
         count: result.rows.length,
-        goals: result.rows
+        goals: result.rows,
       });
     } catch (error) {
       console.error('Get goals error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch goals' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch goals',
       });
     }
   },
@@ -55,25 +55,25 @@ const goalController = {
 
       const result = await db.query(
         'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
-        [goalId, userId]
+        [goalId, userId],
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Goal not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Goal not found',
         });
       }
 
       res.json({
         success: true,
-        goal: result.rows[0]
+        goal: result.rows[0],
       });
     } catch (error) {
       console.error('Get goal by ID error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch goal' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch goal',
       });
     }
   },
@@ -88,30 +88,30 @@ const goalController = {
         category,
         difficulty_level,
         target_completion_date,
-        is_public
+        is_public,
       } = req.body;
 
       // Validation
       if (!title || title.trim().length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Title is required' 
+        return res.status(400).json({
+          success: false,
+          error: 'Title is required',
         });
       }
 
       if (title.length > 255) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Title must be less than 255 characters' 
+        return res.status(400).json({
+          success: false,
+          error: 'Title must be less than 255 characters',
         });
       }
 
       // Valid difficulty levels
       const validDifficulties = ['easy', 'medium', 'hard', 'expert'];
       if (difficulty_level && !validDifficulties.includes(difficulty_level.toLowerCase())) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert' 
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert',
         });
       }
 
@@ -127,20 +127,20 @@ const goalController = {
           category || null,
           difficulty_level ? difficulty_level.toLowerCase() : 'medium',
           target_completion_date || null,
-          is_public || false
-        ]
+          is_public || false,
+        ],
       );
 
       res.status(201).json({
         success: true,
         message: 'Goal created successfully',
-        goal: result.rows[0]
+        goal: result.rows[0],
       });
     } catch (error) {
       console.error('Create goal error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to create goal' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create goal',
       });
     }
   },
@@ -158,19 +158,19 @@ const goalController = {
         target_completion_date,
         is_completed,
         progress_percentage,
-        is_public
+        is_public,
       } = req.body;
 
       // Check if goal exists and belongs to user
       const existing = await db.query(
         'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
-        [goalId, userId]
+        [goalId, userId],
       );
 
       if (existing.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Goal not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Goal not found',
         });
       }
 
@@ -181,9 +181,9 @@ const goalController = {
 
       if (title !== undefined) {
         if (!title || title.trim().length === 0) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Title cannot be empty' 
+          return res.status(400).json({
+            success: false,
+            error: 'Title cannot be empty',
           });
         }
         updates.push(`title = $${paramIndex}`);
@@ -206,9 +206,9 @@ const goalController = {
       if (difficulty_level !== undefined) {
         const validDifficulties = ['easy', 'medium', 'hard', 'expert'];
         if (!validDifficulties.includes(difficulty_level.toLowerCase())) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Invalid difficulty level' 
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid difficulty level',
           });
         }
         updates.push(`difficulty_level = $${paramIndex}`);
@@ -226,19 +226,19 @@ const goalController = {
         updates.push(`is_completed = $${paramIndex}`);
         params.push(is_completed);
         paramIndex++;
-        
+
         // Set completion date if marking as completed
         if (is_completed) {
-          updates.push(`completion_date = now()`);
-          updates.push(`progress_percentage = 100`);
+          updates.push('completion_date = now()');
+          updates.push('progress_percentage = 100');
         }
       }
 
       if (progress_percentage !== undefined) {
         if (progress_percentage < 0 || progress_percentage > 100) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Progress percentage must be between 0 and 100' 
+          return res.status(400).json({
+            success: false,
+            error: 'Progress percentage must be between 0 and 100',
           });
         }
         updates.push(`progress_percentage = $${paramIndex}`);
@@ -253,13 +253,13 @@ const goalController = {
       }
 
       if (updates.length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'No fields to update' 
+        return res.status(400).json({
+          success: false,
+          error: 'No fields to update',
         });
       }
 
-      updates.push(`updated_at = now()`);
+      updates.push('updated_at = now()');
       params.push(goalId);
       params.push(userId);
 
@@ -275,13 +275,13 @@ const goalController = {
       res.json({
         success: true,
         message: 'Goal updated successfully',
-        goal: result.rows[0]
+        goal: result.rows[0],
       });
     } catch (error) {
       console.error('Update goal error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to update goal' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update goal',
       });
     }
   },
@@ -294,28 +294,28 @@ const goalController = {
 
       const result = await db.query(
         'DELETE FROM goals WHERE id = $1 AND user_id = $2 RETURNING id',
-        [goalId, userId]
+        [goalId, userId],
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Goal not found' 
+        return res.status(404).json({
+          success: false,
+          error: 'Goal not found',
         });
       }
 
       res.json({
         success: true,
-        message: 'Goal deleted successfully'
+        message: 'Goal deleted successfully',
       });
     } catch (error) {
       console.error('Delete goal error:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to delete goal' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete goal',
       });
     }
-  }
+  },
 };
 
 module.exports = goalController;

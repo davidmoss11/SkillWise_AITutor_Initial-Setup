@@ -1,5 +1,8 @@
 const db = require('../database/connection');
 
+// Temporary change to differentiate branches
+console.log('Temporary change to differentiate DavidM-D8 branch from main');
+
 class Challenge {
   static async findAll() {
     try {

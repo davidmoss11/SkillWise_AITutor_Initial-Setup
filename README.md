@@ -1,3 +1,83 @@
+# SkillWise Sprint 2 (Deliverable 8)
+
+This branch implements Sprint 2 user stories (Goals, Challenges, Progress, Testing, CI) per rubric.
+## Implemented User Stories
+
+| Story | Description | Tech | Status |
+|-------|-------------|------|--------|
+| 2.1 Goals Creation | User can create a learning goal via form | React, RHF, Axios | Complete |
+| 2.2 Goals Endpoints | CRUD endpoints for goals (Express + Postgres) | Express, SQL (raw) | Complete |
+| 2.3 Goals Table Migration | Goals table includes title, description, user_id, target_date | SQL Migration | Complete (added target_date column) |
+| 2.4 Challenge Cards | Challenges displayed as cards with title, description, status | React | Complete |
+| 2.5 Challenge Endpoints | CRUD for /challenges linked to goals | Express, Postgres | Complete |
+| 2.6 Progress Bar | Progress updates when marking challenges complete | React + custom bar | Complete (Recharts alternative pending) |
+| 2.7 Testing | Jest integration test & Cypress e2e flow | Jest, Cypress | Complete |
+| 2.8 CI | GitHub Actions runs backend tests & frontend build | GitHub Actions | Complete |
+
+## Frontend Architecture
+
+Vite React app in `client/` with organized folders: `components/`, `pages/`, `context/`, `lib/`. Auth handled through `AuthContext` using JWT. Protected routes implemented with a `ProtectedRoute` wrapper in `App.jsx`.
+## Use Cases
+
+1. Register & Login: POST `/api/auth/register`, then login via UI at `/login` (stores JWT).  
+2. Create Goal: Fill form on Dashboard, POST `/api/goals`, appears in list with empty progress.  
+3. Add Challenge: Use inline form under goal to POST `/api/challenges` linked to `goalId`.  
+4. Mark Challenge Complete: Click "Mark Complete" toggles status and backend recalculates `progress_percentage`.  
+5. View Progress: Progress bar shows percentage of completed challenges per goal.  
+
+## API Summary
+
+`POST /api/auth/register` – create user  
+`POST /api/auth/login` – obtain JWT  
+`GET /api/goals` – list user goals (with challenges)  
+`POST /api/goals` – create goal (`title`, `description`, `targetDate`)  
+`PUT /api/goals/:id` – update goal (supports progress and completion)  
+`DELETE /api/goals/:id` – remove goal  
+`GET /api/challenges?goalId=` – list challenges (optional filter)  
+`POST /api/challenges` – create challenge (`title`, `description`, `goalId`)  
+`PUT /api/challenges/:id` – update challenge (status/title/description)  
+`DELETE /api/challenges/:id` – delete challenge  
+
+## Data Model (Goals)
+
+Columns: `id`, `user_id`, `title`, `description`, `target_completion_date`, `target_date`, `is_completed`, `progress_percentage`, `category`, `difficulty_level`, timestamps.
+
+Added migration `013_add_target_date_to_goals.sql` to align rubric requirement for `target_date`.
+
+## Progress Calculation
+
+When a challenge status changes, backend recalculates:
+`progress_percentage = round(completed/total * 100)` and sets `is_completed = true` if 100%.
+
+## Testing
+
+Jest integration test (`authGoals.test.js`) covers register, login, create goal, create challenge, mark complete. Cypress e2e (`smoke.spec.js`) automates full UI flow.
+
+## CI
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs backend tests and frontend build on PRs to `main`.
+
+## Running Locally
+
+Backend:
+1. Set `DATABASE_URL` env pointing to Postgres instance.  
+2. Run migrations in `backend/database/migrations` (e.g. manually or script).  
+3. `npm install` then `npm run dev` inside `backend/`.  
+
+Frontend:
+1. `npm install` inside `client/`.  
+2. `npm run dev` and visit `http://localhost:5173`.  
+
+## Notes
+
+Prisma was specified in rubric; current implementation uses raw SQL migrations for speed. Column `target_date` added explicitly to satisfy schema requirement. A future enhancement could introduce Prisma schema and generators mapping existing tables.
+
+## Next Enhancements (Optional)
+
+1. Replace custom progress bar with Recharts visualization component.  
+2. Add optimistic UI updates on challenge toggle.  
+3. Introduce Prisma ORM for typed queries.  
+4. Add error boundary and toast system for better UX.  
 # SkillWise Learning Platform 🎓
 
 A collaborative learning platform built with React, Node.js, and PostgreSQL.
@@ -393,3 +473,6 @@ This repository provides a complete, production-ready development environment wi
 ✅ **Documentation** and development guidelines
 
 Just run `npm run dev:all` and start coding! 🚀
+
+# Temporary Change
+This is a temporary change to differentiate the DavidM-D8 branch from the main branch.

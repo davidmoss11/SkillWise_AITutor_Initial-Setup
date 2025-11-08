@@ -3,9 +3,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../database/connection');
+const auth = require('../middleware/auth');
 
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
+// Shared handler used by /register and optional /signup alias
+async function handleRegister(req, res) {
   try {
     const { email, password, firstName, lastName } = req.body;
 
@@ -47,14 +48,17 @@ router.post('/register', async (req, res) => {
       }
     );
 
-    return res
-      .status(201)
-      .json({ user: { id: user.id, email: user.email }, token });
+    return res.status(201).json({ user: { id: user.id, email: user.email }, token });
   } catch (err) {
     console.error('Register error', err);
     return res.status(500).json({ error: 'Registration failed' });
   }
-});
+}
+
+// POST /api/auth/register
+router.post('/register', handleRegister);
+// POST /api/auth/signup (alias kept for compatibility across branches)
+router.post('/signup', handleRegister);
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
@@ -92,6 +96,25 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error', err);
     return res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// GET /api/auth/me - return current user if token valid
+router.get('/me', auth, async (req, res) => {
+  try {
+    // req.user is set by auth middleware
+    return res.json({ user: req.user });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to load profile' });
+  }
+});
+
+// POST /api/auth/logout - no-op for stateless JWT, provided for client compatibility
+router.post('/logout', auth, async (req, res) => {
+  try {
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: 'Logout failed' });
   }
 });
 

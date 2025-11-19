@@ -20,17 +20,21 @@ const LoginPage = () => {
       setIsLoading(true);
       setError('');
       
+      console.log('🔐 Attempting login...');
       const result = await login({
         email: formData.email,
         password: formData.password
       });
       
       if (result.success) {
+        console.log('✅ Login successful! Redirecting to:', from);
         navigate(from, { replace: true });
       } else {
+        console.error('❌ Login failed:', result.error);
         setError(result.error || 'Login failed. Please try again.');
       }
     } catch (err) {
+      console.error('❌ Login error:', err);
       setError(err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);

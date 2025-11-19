@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChallengeCard from '../components/challenges/ChallengeCard';
+import GenerateChallengeModal from '../components/challenges/GenerateChallengeModal';
+import SubmissionForm from '../components/challenges/SubmissionForm';
 import challengeService from '../services/challenges';
 
 const ChallengesPage = () => {
@@ -13,9 +15,13 @@ const ChallengesPage = () => {
     difficulty: '',
     search: ''
   });
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
   // Load challenges and categories on mount
   useEffect(() => {
+    console.log('🚀 ChallengesPage mounted - Sprint 3 features enabled!');
     loadChallenges();
     loadCategories();
   }, []);
@@ -158,12 +164,34 @@ const ChallengesPage = () => {
 
   const handleStartChallenge = async (challengeId) => {
     try {
-      await challengeService.startChallenge(challengeId);
-      // Could redirect to challenge detail page or show success message
-      alert('Challenge started! Good luck!');
+      const challenge = challenges.find(c => c.id === challengeId);
+      setSelectedChallenge(challenge);
+      setShowSubmissionForm(true);
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleChallengeGenerated = (generatedChallenge) => {
+    // Add the AI-generated challenge to the list
+    const newChallenge = {
+      id: Date.now(), // Temporary ID
+      title: generatedChallenge.title,
+      description: generatedChallenge.description,
+      difficulty: generatedChallenge.difficulty,
+      points: generatedChallenge.difficulty === 'beginner' ? 25 : 
+              generatedChallenge.difficulty === 'intermediate' ? 50 : 75,
+      estimated_time: generatedChallenge.estimatedTime || 60,
+      tags: ['AI Generated'],
+      status: 'active',
+      aiGenerated: true,
+      requirements: generatedChallenge.requirements,
+      testCases: generatedChallenge.testCases,
+      starterCode: generatedChallenge.starterCode
+    };
+    setChallenges([newChallenge, ...challenges]);
+    setFilteredChallenges([newChallenge, ...filteredChallenges]);
+    setShowGenerateModal(false);
   };
 
   return (
@@ -171,6 +199,20 @@ const ChallengesPage = () => {
       <div className="page-header">
         <h1>Coding Challenges</h1>
         <p>Test your skills and earn points with our curated challenges</p>
+        <div style={{ marginTop: '20px' }}>
+          <button 
+            onClick={() => setShowGenerateModal(true)} 
+            className="btn-primary"
+            style={{ 
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '600'
+            }}
+          >
+            🤖 Generate AI Challenge
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -252,6 +294,88 @@ const ChallengesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Sprint 3: AI Challenge Generation Modal */}
+      <GenerateChallengeModal 
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onChallengeGenerated={handleChallengeGenerated}
+      />
+
+      {/* Sprint 3: Code Submission Form */}
+      {showSubmissionForm && selectedChallenge && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+          overflowY: 'auto'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            maxWidth: '900px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => {
+                setShowSubmissionForm(false);
+                setSelectedChallenge(null);
+              }}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                zIndex: 1
+              }}
+            >
+              ✕
+            </button>
+            <div style={{ padding: '30px' }}>
+              <h2 style={{ marginBottom: '10px' }}>{selectedChallenge.title}</h2>
+              <p style={{ color: '#666', marginBottom: '20px' }}>{selectedChallenge.description}</p>
+              {selectedChallenge.requirements && (
+                <div style={{ marginBottom: '20px' }}>
+                  <h3>Requirements:</h3>
+                  <ul>
+                    {selectedChallenge.requirements.map((req, idx) => (
+                      <li key={idx}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {selectedChallenge.starterCode && (
+                <div style={{ marginBottom: '20px' }}>
+                  <h3>Starter Code:</h3>
+                  <pre style={{
+                    background: '#f5f5f5',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    overflow: 'auto'
+                  }}>
+                    {selectedChallenge.starterCode}
+                  </pre>
+                </div>
+              )}
+              <SubmissionForm challengeId={selectedChallenge.id} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

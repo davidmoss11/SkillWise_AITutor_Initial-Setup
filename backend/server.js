@@ -1,5 +1,26 @@
 #!/usr/bin/env node
-// TODO: Server entry point with graceful shutdown and error handling
+// Server entry point with Sentry error tracking, graceful shutdown and error handling
+
+// Initialize Sentry FIRST before any other imports
+const Sentry = require('@sentry/node');
+
+// Only initialize Sentry in production or if DSN is explicitly provided
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    integrations: [
+      // Enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true }),
+      // Enable Express request tracing
+      new Sentry.Integrations.Express({
+        app: true,
+      }),
+    ],
+  });
+  console.log('✅ Sentry error tracking initialized');
+}
 
 const app = require('./src/app');
 const logger = app.get('logger');

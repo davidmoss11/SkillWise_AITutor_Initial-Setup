@@ -114,7 +114,7 @@ api.interceptors.response.use(
           }
         );
 
-        const { accessToken } = refreshResponse.data;
+        const { accessToken } = refreshResponse.data.data;
         
         if (accessToken) {
           // Update stored access token

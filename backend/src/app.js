@@ -1,10 +1,11 @@
-// TODO: Main Express application setup with middleware and routing
+// Main Express application setup with Sentry error tracking, middleware and routing
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const pino = require('pino');
 const pinoHttp = require('pino-http');
+const Sentry = require('@sentry/node');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -14,6 +15,13 @@ const routes = require('./routes/index');
 
 // Create Express app
 const app = express();
+
+// Sentry request handler must be the first middleware
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  // TracingHandler creates a trace for every incoming request
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // Create logger
 const logger = pino({
@@ -116,6 +124,16 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Sentry error handler must be before other error handlers
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler({
+    shouldHandleError(error) {
+      // Capture all errors with status code >= 500
+      return error.status >= 500;
+    },
+  }));
+}
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -1,0 +1,197 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AI Service - Snapshot Tests Metadata Consistency should include consistent metadata in challenge generation 1`] = `
+{
+  "model": "gpt-4",
+  "prompt": "Create a coding challenge with the following requirements:
+
+Topic: Test
+Difficulty: beginner
+Programming Language: JavaScript
+Skill Level: intermediate
+
+Generate a complete challenge in JSON format with:
+1. title: Clear, concise title
+2. description: Detailed problem description
+3. difficulty: beginner
+4. requirements: Array of specific requirements
+5. testCases: Array of test cases with input/output
+6. starterCode: Template code to help users get started
+7. hints: Array of helpful hints (optional)
+8. estimatedTime: Estimated completion time in minutes
+
+Make it engaging and educational!",
+  "response": "{"title":"Test","description":"Test","difficulty":"beginner"}",
+  "timestamp": Any<String>,
+  "tokensUsed": 250,
+}
+`;
+
+exports[`AI Service - Snapshot Tests Prompt Templates should have consistent challenge generation template 1`] = `
+{
+  "system": "You are an expert programming instructor creating educational coding challenges. 
+Generate challenges that are clear, educational, and appropriate for the specified skill level.
+Always include: title, description, difficulty level, test cases, and starter code.",
+  "user": [Function],
+}
+`;
+
+exports[`AI Service - Snapshot Tests Prompt Templates should have consistent evaluation template 1`] = `
+{
+  "system": "You are an expert code reviewer providing constructive, educational feedback.
+Analyze code for correctness, code quality, best practices, and potential improvements.
+Be encouraging but thorough in your assessment.",
+  "user": [Function],
+}
+`;
+
+exports[`AI Service - Snapshot Tests Prompt Templates should have consistent hint template 1`] = `
+{
+  "system": "You are a patient programming tutor providing helpful hints without giving away the complete solution.",
+  "user": [Function],
+}
+`;
+
+exports[`AI Service - Snapshot Tests evaluateSubmission should generate failing feedback that matches snapshot 1`] = `
+{
+  "bestPractices": [
+    "Add input validation",
+    "Use meaningful variable names",
+    "Break down complex logic",
+  ],
+  "bugs": [
+    "Infinite loop on empty array",
+    "Incorrect return value for negative numbers",
+  ],
+  "codeQuality": "poor",
+  "improvements": [
+    "Logic errors in implementation",
+    "Missing error handling",
+    "Inefficient algorithm",
+  ],
+  "passed": false,
+  "score": 45,
+  "strengths": [
+    "Attempted to solve the problem",
+  ],
+  "summary": "The solution has several bugs and logic errors. Review the requirements and test cases carefully.",
+}
+`;
+
+exports[`AI Service - Snapshot Tests evaluateSubmission should generate feedback response that matches snapshot 1`] = `
+{
+  "bestPractices": [
+    "Use const/let instead of var",
+    "Add JSDoc comments",
+  ],
+  "bugs": [],
+  "codeQuality": "good",
+  "improvements": [
+    "Could add more comments",
+    "Consider edge case for very large arrays",
+  ],
+  "passed": true,
+  "score": 85,
+  "strengths": [
+    "Clean and readable code",
+    "Proper error handling",
+    "Good variable naming",
+  ],
+  "summary": "Well-written solution with good practices. Minor improvements needed for edge cases.",
+}
+`;
+
+exports[`AI Service - Snapshot Tests generateChallenge should generate a challenge response that matches snapshot 1`] = `
+{
+  "description": "Write a function that calculates the sum of all numbers in an array.",
+  "difficulty": "beginner",
+  "estimatedTime": 15,
+  "hints": [
+    "Consider using array methods",
+    "Think about edge cases",
+  ],
+  "requirements": [
+    "Function should accept an array of numbers",
+    "Return the sum of all elements",
+    "Handle empty arrays",
+  ],
+  "starterCode": "function sumArray(arr) {
+  // Your code here
+}",
+  "testCases": [
+    {
+      "input": [
+        1,
+        2,
+        3,
+      ],
+      "output": 6,
+    },
+    {
+      "input": [],
+      "output": 0,
+    },
+    {
+      "input": [
+        -1,
+        1,
+      ],
+      "output": 0,
+    },
+  ],
+  "title": "Array Sum Calculator",
+}
+`;
+
+exports[`AI Service - Snapshot Tests generateChallenge should generate intermediate difficulty challenge that matches snapshot 1`] = `
+{
+  "description": "Implement a binary search algorithm to find an element in a sorted array.",
+  "difficulty": "intermediate",
+  "estimatedTime": 30,
+  "requirements": [
+    "Implement binary search algorithm",
+    "Return index of found element",
+    "Return -1 if element not found",
+    "Handle edge cases",
+  ],
+  "starterCode": "function binarySearch(arr, target) {
+  // Your code here
+}",
+  "testCases": [
+    {
+      "input": [
+        [
+          1,
+          2,
+          3,
+          4,
+          5,
+        ],
+        3,
+      ],
+      "output": 2,
+    },
+    {
+      "input": [
+        [
+          1,
+          2,
+          3,
+          4,
+          5,
+        ],
+        6,
+      ],
+      "output": -1,
+    },
+  ],
+  "title": "Binary Search Implementation",
+}
+`;
+
+exports[`AI Service - Snapshot Tests generateHint should generate hint response that matches snapshot 1`] = `
+{
+  "difficulty": "low",
+  "hint": "Think about using the reduce() method to accumulate values. Start with an initial value of 0.",
+}
+`;

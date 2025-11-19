@@ -125,7 +125,10 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiService.auth.login(credentials);
-      const { user, accessToken } = response.data;
+      console.log('📦 Login response:', response.data);
+      
+      // Backend returns { success, data: { user, accessToken } }
+      const { user, accessToken } = response.data.data;
 
       // Store access token
       setAccessToken(accessToken);
@@ -137,6 +140,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user };
     } catch (error) {
+      console.error('❌ Login error:', error);
       const errorMessage = error.response?.data?.message || 'Login failed';
       dispatch({
         type: AUTH_ACTIONS.SET_ERROR,
@@ -153,7 +157,10 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiService.auth.register(userData);
-      const { user, accessToken } = response.data;
+      console.log('📦 Register response:', response.data);
+      
+      // Backend returns { success, data: { user, accessToken } }
+      const { user, accessToken } = response.data.data;
 
       // Store access token
       setAccessToken(accessToken);
@@ -165,6 +172,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user };
     } catch (error) {
+      console.error('❌ Register error:', error);
       const errorMessage = error.response?.data?.message || 'Registration failed';
       dispatch({
         type: AUTH_ACTIONS.SET_ERROR,

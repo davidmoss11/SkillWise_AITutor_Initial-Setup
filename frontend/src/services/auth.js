@@ -49,7 +49,6 @@ export const authService = {
       console.warn('Logout API call failed:', error);
     } finally {
       localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     }
   },
@@ -57,12 +56,12 @@ export const authService = {
   // TODO: Refresh token
   async refreshToken() {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      const response = await api.post('/auth/refresh', { refreshToken });
-      const { token } = response.data;
+      // Refresh token is sent automatically via httpOnly cookie
+      const response = await api.post('/auth/refresh');
+      const { accessToken } = response.data.data;
       
-      localStorage.setItem('authToken', token);
-      return token;
+      localStorage.setItem('authToken', accessToken);
+      return accessToken;
     } catch (error) {
       throw new Error('Token refresh failed');
     }

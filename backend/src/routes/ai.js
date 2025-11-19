@@ -1,19 +1,44 @@
-// TODO: Implement AI routes
 const express = require('express');
 const router = express.Router();
 const aiController = require('../controllers/aiController');
 const auth = require('../middleware/auth');
 
-// TODO: Add POST /feedback route for generating AI feedback
-router.post('/feedback', auth, aiController.generateFeedback);
+// All AI routes require authentication
+router.use(auth);
 
-// TODO: Add GET /hints/:challengeId route for getting hints
-router.get('/hints/:challengeId', auth, aiController.getHints);
+/**
+ * @route   POST /api/ai/generateChallenge
+ * @desc    Generate a new coding challenge using AI
+ * @access  Private
+ */
+router.post('/generateChallenge', aiController.generateChallenge);
 
-// TODO: Add GET /suggestions route for challenge suggestions
-router.get('/suggestions', auth, aiController.suggestChallenges);
+/**
+ * @route   POST /api/ai/submitForFeedback
+ * @desc    Submit code for AI feedback
+ * @access  Private
+ */
+router.post('/submitForFeedback', aiController.submitForFeedback);
 
-// TODO: Add GET /analysis route for progress analysis
-router.get('/analysis', auth, aiController.analyzeProgress);
+/**
+ * @route   POST /api/ai/generateHint
+ * @desc    Get an AI-generated hint for a challenge
+ * @access  Private
+ */
+router.post('/generateHint', aiController.generateHint);
+
+/**
+ * @route   GET /api/ai/feedback/:submissionId
+ * @desc    Get feedback for a specific submission
+ * @access  Private
+ */
+router.get('/feedback/:submissionId', aiController.getFeedback);
+
+/**
+ * @route   GET /api/ai/feedback/user/:userId
+ * @desc    Get all feedback for a user
+ * @access  Private
+ */
+router.get('/feedback/user/:userId', aiController.getUserFeedback);
 
 module.exports = router;

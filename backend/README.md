@@ -255,3 +255,88 @@ backend/
 - Error tracking and alerting
 - Performance monitoring
 - API usage analytics
+
+## Sprint 3: AI Integration & Monitoring
+
+Implemented user stories 3.1–3.8:
+
+1. Generate Challenge (UI + endpoint): `GET /api/ai/generateChallenge?topic=JS+arrays&difficulty=beginner`
+2. Challenge Logging: Prompts and AI responses persisted in `ai_challenge_logs`
+3. Prompt Templates: Centralized template service assembling challenge and feedback prompts
+4. Submission Feedback Form: Frontend posts code/text for feedback
+5. Feedback Endpoint: `POST /api/ai/submitForFeedback` stores prompt, response, and submission linkage
+6. Persistence Enhancements: Added `prompt` and `response` columns to `ai_feedback` (migration 013)
+7. Snapshot Tests: Stable snapshots for challenge + feedback generation (`tests/aiService.snapshot.test.js`)
+8. Sentry Integration: Backend (`src/app.js`) + Frontend initialization for error capture
+
+### New/Updated Database Migrations
+
+- `012_create_ai_challenge_logs.sql` – stores challenge prompt/response metadata
+- `013_add_prompt_response_columns_ai_feedback.sql` – extends existing feedback table
+
+### AI Endpoints (Current Scope)
+
+- `GET /api/ai/generateChallenge` – Query params: `topic`, `difficulty`, optional `goal`.
+  Response sample:
+  ```json
+  {
+    "challenge": "Implement a function to reverse an array without using built-in reverse.",
+    "prompt": "...compiled prompt text..."
+  }
+  ```
+- `POST /api/ai/submitForFeedback`
+  Body:
+  ```json
+  {
+    "submissionText": "function reverse(arr){...}",
+    "challengeId": 42
+  }
+  ```
+  Response sample:
+  ```json
+  {
+    "feedback": "Consider using two-pointer technique to reduce memory.",
+    "prompt": "...feedback prompt..."
+  }
+  ```
+
+### Environment Variables
+
+| Variable                    | Purpose                                                 |
+| --------------------------- | ------------------------------------------------------- |
+| `OPENAI_API_KEY`            | Enables real OpenAI responses (mock fallback if absent) |
+| `SENTRY_DSN`                | Activates Sentry error/request handlers                 |
+| `SENTRY_TRACES_SAMPLE_RATE` | (Optional) Performance trace sampling (default 0.1)     |
+
+If `OPENAI_API_KEY` is not set, the service returns deterministic mock challenge and feedback strings to allow development and testing without external calls.
+
+### Testing
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Snapshot tests cover AI output structure. To update snapshots after intentional prompt/template changes:
+
+```bash
+npm test -- -u
+```
+
+### Error Monitoring
+
+When `SENTRY_DSN` is present, request and error handlers capture exceptions. Tracing integrations were simplified—performance traces are optional and can be re-enabled by adding Express tracing integration if needed.
+
+### Usage Notes
+
+- Frontend Challenge generation button triggers `GET /api/ai/generateChallenge` and displays result in a modal.
+- Feedback submission posts to `POST /api/ai/submitForFeedback` and renders returned AI feedback.
+- Logs and feedback storage are resilient: if tables are missing (early dev), operations fail gracefully without crashing the app.
+
+### Next Improvement Opportunities (Post Sprint 3)
+
+- Add E2E tests (Cypress) exercising challenge generation & feedback flow.
+- Enhance UX (loading states, error toasts, retry buttons).
+- Add rate limiting specific to AI endpoints distinct from global limit.
+- Introduce caching for repeated challenge requests per topic/difficulty.

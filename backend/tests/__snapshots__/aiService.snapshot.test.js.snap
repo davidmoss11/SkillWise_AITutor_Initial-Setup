@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AI Service Snapshots generateChallenge snapshot 1`] = `
+{
+  "challenge": "[MOCK] You are an AI tutor. Generate a concise, well-structured learning challenge.
+Subject: algorithms
+Dif...",
+  "metadata": {
+    "difficulty": "medium",
+    "latencyMs": 0,
+    "model": "mock-local",
+    "subject": "algorithms",
+  },
+}
+`;
+
+exports[`AI Service Snapshots generateFeedback snapshot 1`] = `
+{
+  "feedback": "[MOCK] You are an AI tutor. Provide constructive feedback.
+Submission: My solution code
+Context: {"id":10}
+...",
+  "metadata": {
+    "latencyMs": 0,
+    "model": "mock-local",
+  },
+}
+`;

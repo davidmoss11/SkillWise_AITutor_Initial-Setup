@@ -1,0 +1,36 @@
+// Prisma schema (Sprint 3) mapping existing tables + new logs
+// NOTE: Existing tables created via raw SQL migrations.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AIFeedback {
+  id               Int      @id @default(autoincrement())
+  submissionId     Int      @map("submission_id")
+  feedbackText     String   @map("feedback_text")
+  aiModel          String?  @map("ai_model")
+  processingTimeMs Int?     @map("processing_time_ms")
+  prompt           String?  // added sprint3 migration
+  response         String?  // added sprint3 migration
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @map("updated_at")
+
+  @@map("ai_feedback")
+}
+
+model AIchallengeLog {
+  id        Int      @id @default(autoincrement())
+  prompt    String
+  response  String
+  model     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  metadata  Json?    @map("metadata")
+
+  @@map("ai_challenge_logs")
+}

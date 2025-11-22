@@ -1,7 +1,11 @@
 // TODO: Implement challenges browsing and participation page
-import React, { useState, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from 'react';
 import ChallengeCard from '../components/challenges/ChallengeCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import Modal from '../components/common/Modal';
+import SubmissionForm from '../components/challenges/SubmissionForm';
+import { apiService } from '../services/api';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
@@ -10,8 +14,13 @@ const ChallengesPage = () => {
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
-    search: ''
+    search: '',
   });
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false);
+  const [generatedChallenge, setGeneratedChallenge] = useState(null);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+  const [feedbackResult, setFeedbackResult] = useState(null);
+  const [aiError, setAiError] = useState(null);
 
   // Mock data - TODO: Replace with API call
   useEffect(() => {
@@ -19,33 +28,36 @@ const ChallengesPage = () => {
       {
         id: 1,
         title: 'Build a React Component',
-        description: 'Create a reusable React component with props and state management.',
+        description:
+          'Create a reusable React component with props and state management.',
         category: 'Programming',
         difficulty: 'Medium',
         points: 50,
         estimatedTime: 45,
-        tags: ['React', 'JavaScript', 'Frontend']
+        tags: ['React', 'JavaScript', 'Frontend'],
       },
       {
         id: 2,
         title: 'Design a Logo',
-        description: 'Design a professional logo using design principles and color theory.',
+        description:
+          'Design a professional logo using design principles and color theory.',
         category: 'Design',
         difficulty: 'Easy',
         points: 30,
         estimatedTime: 60,
-        tags: ['Design', 'Branding', 'Creative']
+        tags: ['Design', 'Branding', 'Creative'],
       },
       {
         id: 3,
         title: 'Database Optimization',
-        description: 'Optimize a slow database query and improve performance metrics.',
+        description:
+          'Optimize a slow database query and improve performance metrics.',
         category: 'Backend',
         difficulty: 'Hard',
         points: 100,
         estimatedTime: 120,
-        tags: ['SQL', 'Database', 'Performance']
-      }
+        tags: ['SQL', 'Database', 'Performance'],
+      },
     ];
 
     setTimeout(() => {
@@ -60,22 +72,32 @@ const ChallengesPage = () => {
     let filtered = challenges;
 
     if (filters.category) {
-      filtered = filtered.filter(challenge => 
-        challenge.category.toLowerCase() === filters.category.toLowerCase()
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.category.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
     if (filters.difficulty) {
-      filtered = filtered.filter(challenge => 
-        challenge.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.difficulty.toLowerCase() ===
+          filters.difficulty.toLowerCase()
       );
     }
 
     if (filters.search) {
-      filtered = filtered.filter(challenge =>
-        challenge.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.tags.some(tag => tag.toLowerCase().includes(filters.search.toLowerCase()))
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.title
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          challenge.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          challenge.tags.some((tag) =>
+            tag.toLowerCase().includes(filters.search.toLowerCase())
+          )
       );
     }
 
@@ -83,10 +105,24 @@ const ChallengesPage = () => {
   }, [challenges, filters]);
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }));
+  };
+
+  const handleGenerateChallenge = async () => {
+    setChallengeLoading(true);
+    setAiError(null);
+    try {
+      const res = await apiService.ai.generateChallenge();
+      setGeneratedChallenge(res.data.challenge);
+      setChallengeModalOpen(true);
+    } catch (err) {
+      setAiError(err.message || 'Failed to generate challenge');
+    } finally {
+      setChallengeLoading(false);
+    }
   };
 
   return (
@@ -94,6 +130,33 @@ const ChallengesPage = () => {
       <div className="page-header">
         <h1>Learning Challenges</h1>
         <p>Enhance your skills with hands-on learning experiences</p>
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            marginTop: '0.5rem',
+          }}
+        >
+          <button
+            className="btn-primary"
+            onClick={handleGenerateChallenge}
+            disabled={challengeLoading}
+          >
+            {challengeLoading ? 'Generating...' : 'Generate Challenge'}
+          </button>
+          {generatedChallenge && (
+            <button
+              className="btn-secondary"
+              onClick={() => setChallengeModalOpen(true)}
+            >
+              View Last Challenge
+            </button>
+          )}
+        </div>
+        {aiError && (
+          <div style={{ color: '#b00020', marginTop: '0.5rem' }}>{aiError}</div>
+        )}
       </div>
 
       <div className="challenges-filters">
@@ -141,16 +204,22 @@ const ChallengesPage = () => {
         </div>
 
         <div className="results-summary">
-          <p>Showing {filteredChallenges.length} of {challenges.length} challenges</p>
+          <p>
+            Showing {filteredChallenges.length} of {challenges.length}{' '}
+            challenges
+          </p>
         </div>
       </div>
 
-      <div className="challenges-content">
+      <div
+        className="challenges-content"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+      >
         {loading ? (
           <LoadingSpinner message="Loading challenges..." />
         ) : filteredChallenges.length > 0 ? (
           <div className="challenges-grid">
-            {filteredChallenges.map(challenge => (
+            {filteredChallenges.map((challenge) => (
               <ChallengeCard key={challenge.id} challenge={challenge} />
             ))}
           </div>
@@ -158,15 +227,47 @@ const ChallengesPage = () => {
           <div className="empty-state">
             <h3>No challenges found</h3>
             <p>Try adjusting your filters or search terms.</p>
-            <button 
+            <button
               className="btn-secondary"
-              onClick={() => setFilters({ category: '', difficulty: '', search: '' })}
+              onClick={() =>
+                setFilters({ category: '', difficulty: '', search: '' })
+              }
             >
               Clear Filters
             </button>
           </div>
         )}
+
+        {/* Submission for AI Feedback */}
+        <SubmissionForm
+          onFeedback={(text, metadata) => setFeedbackResult({ text, metadata })}
+        />
+        {feedbackResult && (
+          <div
+            style={{
+              border: '1px solid #ddd',
+              padding: '1rem',
+              borderRadius: '8px',
+              background: '#fff',
+            }}
+          >
+            <h3>AI Feedback</h3>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{feedbackResult.text}</pre>
+          </div>
+        )}
       </div>
+
+      <Modal
+        open={challengeModalOpen}
+        onClose={() => setChallengeModalOpen(false)}
+        title="Generated Challenge"
+      >
+        {generatedChallenge ? (
+          <div style={{ whiteSpace: 'pre-wrap' }}>{generatedChallenge}</div>
+        ) : (
+          <p>No challenge generated yet.</p>
+        )}
+      </Modal>
     </div>
   );
 };

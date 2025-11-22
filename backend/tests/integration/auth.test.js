@@ -1,6 +1,6 @@
 // TODO: Implement authentication flow integration tests
 const request = require('supertest');
-const app = require('../src/app');
+const app = require('../../src/app');
 
 describe('Authentication Integration', () => {
   describe('POST /api/auth/register', () => {

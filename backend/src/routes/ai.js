@@ -1,19 +1,19 @@
-// TODO: Implement AI routes
+// AI routes implementation
 const express = require('express');
 const router = express.Router();
 const aiController = require('../controllers/aiController');
 const auth = require('../middleware/auth');
 
-// TODO: Add POST /feedback route for generating AI feedback
-router.post('/feedback', auth, aiController.generateFeedback);
+// Sprint 3: Generate AI challenge
+router.get('/generateChallenge', auth, aiController.generateChallenge);
 
-// TODO: Add GET /hints/:challengeId route for getting hints
+// Sprint 3: Submit for AI feedback (explicit story requirement)
+router.post('/submitForFeedback', auth, aiController.submitForFeedback);
+
+// Existing TODO placeholders (not implemented this sprint)
+router.post('/feedback', auth, aiController.generateFeedback); // legacy path placeholder
 router.get('/hints/:challengeId', auth, aiController.getHints);
-
-// TODO: Add GET /suggestions route for challenge suggestions
 router.get('/suggestions', auth, aiController.suggestChallenges);
-
-// TODO: Add GET /analysis route for progress analysis
 router.get('/analysis', auth, aiController.analyzeProgress);
 
 module.exports = router;

@@ -32,7 +32,8 @@
     "@sentry/node": "^7.81.1",
     "openai": "^4.20.1",
     "nodemailer": "^6.9.7",
-    "redis": "^4.6.10"
+    "redis": "^4.6.10",
+    "@prisma/client": "^5.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
@@ -40,7 +41,8 @@
     "supertest": "^6.3.3",
     "eslint": "^8.55.0",
     "@types/jest": "^29.5.8",
-    "@eslint/js": "^8.55.0"
+    "@eslint/js": "^8.55.0",
+    "prisma": "^5.15.0"
   },
   "keywords": [
     "api",

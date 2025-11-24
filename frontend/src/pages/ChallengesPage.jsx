@@ -1,169 +1,244 @@
-// TODO: Implement challenges browsing and participation page
 import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 import ChallengeCard from '../components/challenges/ChallengeCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import './ChallengesPage.css';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
-  const [filteredChallenges, setFilteredChallenges] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
+    is_active: 'true',
+    goal_id: '',
     search: ''
   });
 
-  // Mock data - TODO: Replace with API call
+  // Fetch challenges on component mount and when filters change
   useEffect(() => {
-    const mockChallenges = [
-      {
-        id: 1,
-        title: 'Build a React Component',
-        description: 'Create a reusable React component with props and state management.',
-        category: 'Programming',
-        difficulty: 'Medium',
-        points: 50,
-        estimatedTime: 45,
-        tags: ['React', 'JavaScript', 'Frontend']
-      },
-      {
-        id: 2,
-        title: 'Design a Logo',
-        description: 'Design a professional logo using design principles and color theory.',
-        category: 'Design',
-        difficulty: 'Easy',
-        points: 30,
-        estimatedTime: 60,
-        tags: ['Design', 'Branding', 'Creative']
-      },
-      {
-        id: 3,
-        title: 'Database Optimization',
-        description: 'Optimize a slow database query and improve performance metrics.',
-        category: 'Backend',
-        difficulty: 'Hard',
-        points: 100,
-        estimatedTime: 120,
-        tags: ['SQL', 'Database', 'Performance']
-      }
-    ];
+    fetchChallenges();
+  }, [filters]);
 
-    setTimeout(() => {
-      setChallenges(mockChallenges);
-      setFilteredChallenges(mockChallenges);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const fetchChallenges = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      const params = {};
+      if (filters.category) params.category = filters.category;
+      if (filters.difficulty) params.difficulty = filters.difficulty;
+      if (filters.is_active) params.is_active = filters.is_active;
+      if (filters.goal_id) params.goal_id = filters.goal_id;
+      if (filters.search) params.search = filters.search;
 
-  // Filter challenges based on current filters
-  useEffect(() => {
-    let filtered = challenges;
-
-    if (filters.category) {
-      filtered = filtered.filter(challenge => 
-        challenge.category.toLowerCase() === filters.category.toLowerCase()
-      );
+      const response = await apiService.challenges.getAll(params);
+      setChallenges(response.data.challenges || []);
+    } catch (err) {
+      console.error('Error fetching challenges:', err);
+      setError('Failed to load challenges. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    if (filters.difficulty) {
-      filtered = filtered.filter(challenge => 
-        challenge.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
-      );
-    }
-
-    if (filters.search) {
-      filtered = filtered.filter(challenge =>
-        challenge.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.tags.some(tag => tag.toLowerCase().includes(filters.search.toLowerCase()))
-      );
-    }
-
-    setFilteredChallenges(filtered);
-  }, [challenges, filters]);
-
-  const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: value
-    }));
   };
+
+  const handleFilterChange = (filterName, value) => {
+    setFilters({
+      ...filters,
+      [filterName]: value
+    });
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    // Debounce search
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+      setFilters({
+        ...filters,
+        search: value
+      });
+    }, 500);
+  };
+
+  const handleViewChallenge = (challenge) => {
+    // TODO: Implement view challenge modal or navigate to detail page
+    console.log('View challenge:', challenge);
+    alert(`View challenge: ${challenge.title}\n\nInstructions: ${challenge.instructions}`);
+  };
+
+  const handleEditChallenge = (challenge) => {
+    // TODO: Implement edit challenge modal
+    console.log('Edit challenge:', challenge);
+    alert('Edit functionality coming soon!');
+  };
+
+  const handleDeleteChallenge = async (challengeId) => {
+    if (!window.confirm('Are you sure you want to delete this challenge?')) {
+      return;
+    }
+
+    try {
+      await apiService.challenges.delete(challengeId);
+      setChallenges(challenges.filter(challenge => challenge.id !== challengeId));
+      setSuccessMessage('Challenge deleted successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error deleting challenge:', err);
+      setError('Failed to delete challenge. Please try again.');
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      category: '',
+      difficulty: '',
+      is_active: 'true',
+      goal_id: '',
+      search: ''
+    });
+  };
+
+  const hasActiveFilters = filters.category || filters.difficulty || filters.search || filters.goal_id || filters.is_active !== 'true';
 
   return (
     <div className="challenges-page">
       <div className="page-header">
-        <h1>Learning Challenges</h1>
-        <p>Enhance your skills with hands-on learning experiences</p>
+        <div>
+          <h1>Learning Challenges</h1>
+          <p className="page-subtitle">Browse and complete challenges to improve your skills</p>
+        </div>
       </div>
 
+      {successMessage && (
+        <div className="success-message">
+          <p>{successMessage}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="challenges-filters">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label htmlFor="search">Search Challenges</label>
-            <input
-              type="text"
-              id="search"
-              placeholder="Search by title, description, or tags..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="category">Category</label>
-            <select
-              id="category"
-              value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
-            >
-              <option value="">All Categories</option>
-              <option value="programming">Programming</option>
-              <option value="design">Design</option>
-              <option value="backend">Backend</option>
-              <option value="data-science">Data Science</option>
-              <option value="business">Business</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="difficulty">Difficulty</label>
-            <select
-              id="difficulty"
-              value={filters.difficulty}
-              onChange={(e) => handleFilterChange('difficulty', e.target.value)}
-            >
-              <option value="">All Levels</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="🔍 Search challenges..."
+            onChange={handleSearchChange}
+            defaultValue={filters.search}
+          />
         </div>
 
-        <div className="results-summary">
-          <p>Showing {filteredChallenges.length} of {challenges.length} challenges</p>
+        <select 
+          value={filters.category} 
+          onChange={(e) => handleFilterChange('category', e.target.value)}
+        >
+          <option value="">All Categories</option>
+          <option value="programming">Programming</option>
+          <option value="web-development">Web Development</option>
+          <option value="mobile-development">Mobile Development</option>
+          <option value="data-science">Data Science</option>
+          <option value="machine-learning">Machine Learning</option>
+          <option value="devops">DevOps</option>
+          <option value="design">Design</option>
+          <option value="business">Business</option>
+          <option value="other">Other</option>
+        </select>
+
+        <select 
+          value={filters.difficulty} 
+          onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+        >
+          <option value="">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+          <option value="expert">Expert</option>
+        </select>
+
+        <select 
+          value={filters.is_active} 
+          onChange={(e) => handleFilterChange('is_active', e.target.value)}
+        >
+          <option value="">All Status</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+
+        {hasActiveFilters && (
+          <button 
+            className="btn-clear-filters" 
+            onClick={handleClearFilters}
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
+
+      <div className="challenges-stats">
+        <div className="stat-item">
+          <span className="stat-number">{challenges.length}</span>
+          <span className="stat-label">Challenges</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">
+            {challenges.filter(c => c.difficulty_level === 'easy').length}
+          </span>
+          <span className="stat-label">Easy</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">
+            {challenges.filter(c => c.difficulty_level === 'medium').length}
+          </span>
+          <span className="stat-label">Medium</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">
+            {challenges.filter(c => c.difficulty_level === 'hard').length}
+          </span>
+          <span className="stat-label">Hard</span>
         </div>
       </div>
 
       <div className="challenges-content">
-        {loading ? (
-          <LoadingSpinner message="Loading challenges..." />
-        ) : filteredChallenges.length > 0 ? (
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Loading challenges...</p>
+          </div>
+        ) : challenges.length > 0 ? (
           <div className="challenges-grid">
-            {filteredChallenges.map(challenge => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
+            {challenges.map(challenge => (
+              <ChallengeCard 
+                key={challenge.id} 
+                challenge={challenge} 
+                onView={handleViewChallenge}
+                onEdit={handleEditChallenge}
+                onDelete={handleDeleteChallenge}
+              />
             ))}
           </div>
         ) : (
           <div className="empty-state">
+            <div className="empty-icon">🎯</div>
             <h3>No challenges found</h3>
-            <p>Try adjusting your filters or search terms.</p>
-            <button 
-              className="btn-secondary"
-              onClick={() => setFilters({ category: '', difficulty: '', search: '' })}
-            >
-              Clear Filters
-            </button>
+            <p>
+              {hasActiveFilters
+                ? 'No challenges match your filters. Try adjusting your search.'
+                : 'There are no challenges available yet.'}
+            </p>
+            {hasActiveFilters && (
+              <button 
+                className="btn-primary" 
+                onClick={handleClearFilters}
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         )}
       </div>

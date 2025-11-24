@@ -1,8 +1,8 @@
-// TODO: Implement dashboard page with navigation
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import { useAuth } from '../hooks/useAuth';
+import './DashboardPage.css';
 
 const DashboardPage = () => {
   const { user } = useAuth();

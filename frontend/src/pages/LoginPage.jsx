@@ -1,9 +1,9 @@
-// TODO: Implement login page with form handling
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoginForm from '../components/auth/LoginForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import './LoginPage.css';
 
 const LoginPage = () => {
   const [error, setError] = useState('');

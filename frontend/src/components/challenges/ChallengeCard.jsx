@@ -134,11 +134,11 @@ const ChallengeCard = ({ challenge, onView, onEdit, onDelete }) => {
         
         <div className="challenge-actions">
           <button 
-            className="btn-action btn-view" 
+            className="btn-action btn-primary btn-start" 
             onClick={handleView}
-            title="View challenge details"
+            title="Start working on this challenge"
           >
-            👁️
+            🚀 Start Challenge
           </button>
           <button 
             className="btn-action btn-edit" 

@@ -248,6 +248,18 @@ export const apiService = {
     markAsRead: (id) => api.put(`/notifications/${id}/read`),
     markAllAsRead: () => api.put('/notifications/read-all'),
   },
+
+  // AI methods
+  ai: {
+    generateChallenge: (params) => api.post('/ai/generateChallenge', params),
+    getMyChallenges: () => api.get('/ai/myChallenges'),
+    generateFeedback: (data) => api.post('/ai/feedback', data),
+    submitForFeedback: (data) => api.post('/ai/submitForFeedback', data),
+    getFeedbackHistory: (challengeId) => api.get('/ai/feedbackHistory', { params: { challengeId } }),
+    getHints: (challengeId) => api.get(`/ai/hints/${challengeId}`),
+    getSuggestions: () => api.get('/ai/suggestions'),
+    getAnalysis: () => api.get('/ai/analysis'),
+  },
 };
 
 // Export utilities for external use

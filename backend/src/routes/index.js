@@ -27,6 +27,7 @@ const submissionRoutes = require('./submissions');
 const aiRoutes = require('./ai');
 const reviewRoutes = require('./reviews');
 const leaderboardRoutes = require('./leaderboard');
+const testRoutes = require('./test'); // Test routes for Sentry (Story 3.8)
 
 // API Documentation endpoint
 router.get('/', (req, res) => {
@@ -61,6 +62,11 @@ router.use('/submissions', submissionRoutes);
 router.use('/ai', aiRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/leaderboard', leaderboardRoutes);
+
+// Mount test routes only in non-production environments (Story 3.8)
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/test', testRoutes);
+}
 
 // API Health check endpoint
 router.get('/health', (req, res) => {

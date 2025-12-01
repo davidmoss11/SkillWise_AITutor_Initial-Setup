@@ -10,6 +10,7 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
 import ChallengesPage from './pages/ChallengesPage';
+import InteractiveChallengeWorkspace from './pages/InteractiveChallengeWorkspace';
 import ProgressPage from './pages/ProgressPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import PeerReviewPage from './pages/PeerReviewPage';
@@ -59,6 +60,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ChallengesPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/challenge/:id" 
+                element={
+                  <ProtectedRoute>
+                    <InteractiveChallengeWorkspace />
                   </ProtectedRoute>
                 } 
               />

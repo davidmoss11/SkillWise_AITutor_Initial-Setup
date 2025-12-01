@@ -1,19 +1,31 @@
-// TODO: Implement AI routes
+// AI routes for challenge generation, feedback, hints, and analysis
 const express = require('express');
 const router = express.Router();
 const aiController = require('../controllers/aiController');
 const auth = require('../middleware/auth');
 
-// TODO: Add POST /feedback route for generating AI feedback
+// POST /api/ai/generateChallenge - Generate a new challenge using AI (Story 3.2)
+router.post('/generateChallenge', auth, aiController.generateChallenge);
+
+// GET /api/ai/myChallenges - Get user's saved AI-generated challenges
+router.get('/myChallenges', auth, aiController.getMyChallenges);
+
+// POST /api/ai/feedback - Generate AI feedback for a submission
 router.post('/feedback', auth, aiController.generateFeedback);
 
-// TODO: Add GET /hints/:challengeId route for getting hints
+// POST /api/ai/submitForFeedback - Submit work for AI feedback (Story 3.4 & 3.5)
+router.post('/submitForFeedback', auth, aiController.submitForFeedback);
+
+// GET /api/ai/feedbackHistory - Get user's feedback history (Story 3.6)
+router.get('/feedbackHistory', auth, aiController.getFeedbackHistory);
+
+// GET /api/ai/hints/:challengeId - Get AI-generated hints for a challenge
 router.get('/hints/:challengeId', auth, aiController.getHints);
 
-// TODO: Add GET /suggestions route for challenge suggestions
+// GET /api/ai/suggestions - Get AI-generated challenge suggestions
 router.get('/suggestions', auth, aiController.suggestChallenges);
 
-// TODO: Add GET /analysis route for progress analysis
+// GET /api/ai/analysis - Get AI analysis of user's learning progress
 router.get('/analysis', auth, aiController.analyzeProgress);
 
 module.exports = router;

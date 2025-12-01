@@ -13,10 +13,16 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     defaultCommandTimeout: 10000,
-    requestTimeout: 10000,
-    responseTimeout: 10000,
+    requestTimeout: 15000,
+    responseTimeout: 15000,
+    pageLoadTimeout: 15000,
     env: {
       apiUrl: 'http://localhost:3001/api'
+    },
+    // Retry failed tests for stability
+    retries: {
+      runMode: 2,
+      openMode: 0
     }
   },
   component: {

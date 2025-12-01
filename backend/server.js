@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-// TODO: Server entry point with graceful shutdown and error handling
+// Server entry point with graceful shutdown and error handling
+
+// Initialize Sentry FIRST (before any other imports)
+const sentry = require('./src/config/sentry');
+sentry.initSentry();
 
 const app = require('./src/app');
 const logger = app.get('logger');
@@ -46,6 +50,14 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   logger.error('💥 Uncaught Exception:', err);
+  sentry.captureException(err, { context: 'uncaughtException' });
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  sentry.captureException(reason, { context: 'unhandledRejection' });
   process.exit(1);
 });
 

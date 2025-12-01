@@ -1,0 +1,107 @@
+.submission-form {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.submission-form h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.submission-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.submission-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #34495e;
+}
+
+.submission-form select,
+.submission-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.submission-form select:focus,
+.submission-form textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.submission-form textarea {
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  min-height: 300px;
+}
+
+.submission-form select:disabled,
+.submission-form textarea:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.submission-form .error-message {
+  background-color: #fee;
+  color: #c00;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #fcc;
+}
+
+.submission-form .form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.submission-form .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submission-form .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submission-form .btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.submission-form .btn-primary:hover:not(:disabled) {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.submission-form .btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.submission-form .btn-secondary:hover:not(:disabled) {
+  background-color: #7f8c8d;
+}

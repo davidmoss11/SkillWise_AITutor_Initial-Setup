@@ -5,6 +5,30 @@
 
 A collaborative learning platform built with React, Node.js, and PostgreSQL.
 
+## ✨ Key Features
+
+### 🤖 AI-Powered Challenge Generation
+- **Automatic Challenge Creation**: Generate unlimited coding challenges using Hugging Face LLM
+- **Personalized Difficulty**: Adapts to user skill level (easy, medium, hard, expert)
+- **Smart Feedback**: AI provides constructive feedback on code submissions
+- **Intelligent Hints**: Context-aware hints that guide without giving away answers
+- **Learning Analytics**: AI analyzes patterns and suggests next steps
+
+[📖 Read AI Challenge Generation Docs](./docs/AI_CHALLENGE_GENERATION.md) | [🚀 Quick Start Guide](./docs/AI_QUICK_START.md)
+
+### 👥 Collaborative Learning
+- Goal tracking and progress monitoring
+- Peer review system
+- Leaderboards and achievements
+- Community challenges
+
+### 🎯 Core Features
+- User authentication with JWT
+- Challenge submission and validation
+- Real-time progress tracking
+- Points and rewards system
+- RESTful API with comprehensive documentation
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -49,8 +73,9 @@ Create environment files if you need to customize settings:
 #### Root `.env` (optional)
 
 ```env
-# OpenAI Configuration (for AI features)
-OPENAI_API_KEY=your-openai-api-key-here
+# Hugging Face Configuration (for AI challenge generation)
+HUGGINGFACE_API_KEY=your-huggingface-token-here
+HUGGINGFACE_MODEL=google/gemma-2-2b-it
 
 # Email Configuration (for notifications)
 SMTP_USER=your-email@gmail.com
@@ -59,6 +84,8 @@ SMTP_PASS=your-app-password
 # Monitoring (optional)
 SENTRY_DSN=your-sentry-dsn-url
 ```
+
+**Note**: Get your FREE Hugging Face API token at https://huggingface.co/settings/tokens
 
 ### 3. Start Development Environment
 

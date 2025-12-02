@@ -67,10 +67,11 @@ services:
       - JWT_EXPIRES_IN=15m
       - JWT_REFRESH_EXPIRES_IN=7d
 
-      # AI Configuration
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-api-key}
-      - OPENAI_MODEL=gpt-3.5-turbo
-      - OPENAI_MAX_TOKENS=1000
+      # AI Configuration - Using FREE Cohere API
+      # Get your FREE API key from: https://dashboard.cohere.com/api-keys
+      - COHERE_API_KEY=DA6TXdPX7KHFV2v5LIgoSRbvMK85Q2nKqYbkQvua
+      - COHERE_MODEL=command-a-03-2025
+      - AI_MAX_TOKENS=1500
 
       # Email Configuration
       - SMTP_HOST=smtp.gmail.com
@@ -116,6 +117,7 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:3001/api
       - REACT_APP_ENVIRONMENT=development
+      - REACT_APP_SENTRY_DSN=${REACT_APP_SENTRY_DSN:-your-sentry-dsn-url}
       - WATCHPACK_POLLING=true
       - FAST_REFRESH=true
     volumes:

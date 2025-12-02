@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import ChallengeCard from '../components/challenges/ChallengeCard';
+import GenerateChallengeModal from '../components/challenges/GenerateChallengeModal';
 import './ChallengesPage.css';
 
 const ChallengesPage = () => {
+  const navigate = useNavigate();
   const [challenges, setChallenges] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
@@ -63,9 +67,8 @@ const ChallengesPage = () => {
   };
 
   const handleViewChallenge = (challenge) => {
-    // TODO: Implement view challenge modal or navigate to detail page
-    console.log('View challenge:', challenge);
-    alert(`View challenge: ${challenge.title}\n\nInstructions: ${challenge.instructions}`);
+    // Navigate to interactive workspace
+    navigate(`/challenge/${challenge.id}`);
   };
 
   const handleEditChallenge = (challenge) => {
@@ -102,6 +105,20 @@ const ChallengesPage = () => {
 
   const hasActiveFilters = filters.category || filters.difficulty || filters.search || filters.goal_id || filters.is_active !== 'true';
 
+  const handleGenerateChallenge = () => {
+    setIsGenerateModalOpen(true);
+  };
+
+  const handleChallengeGenerated = (data) => {
+    setSuccessMessage('AI Challenge generated successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+    
+    // Refresh challenges if it was saved to database
+    if (data.saved) {
+      fetchChallenges();
+    }
+  };
+
   return (
     <div className="challenges-page">
       <div className="page-header">
@@ -109,6 +126,14 @@ const ChallengesPage = () => {
           <h1>Learning Challenges</h1>
           <p className="page-subtitle">Browse and complete challenges to improve your skills</p>
         </div>
+        <button 
+          className="btn-generate-ai" 
+          onClick={handleGenerateChallenge}
+          title="Generate a new challenge using AI"
+        >
+          <span className="btn-icon">✨</span>
+          Generate AI Challenge
+        </button>
       </div>
 
       {successMessage && (
@@ -242,6 +267,13 @@ const ChallengesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Generate Challenge Modal (Story 3.1) */}
+      <GenerateChallengeModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onChallengeGenerated={handleChallengeGenerated}
+      />
     </div>
   );
 };

@@ -20,10 +20,10 @@ const challengeController = {
         FROM challenges c
         LEFT JOIN goals g ON c.goal_id = g.id
         LEFT JOIN users u ON c.created_by = u.id
-        WHERE 1=1
+        WHERE c.created_by = $1
       `;
-      const params = [];
-      let paramIndex = 1;
+      const params = [userId];
+      let paramIndex = 2;
 
       // Filter by goal_id (show challenges for a specific goal)
       if (goal_id) {

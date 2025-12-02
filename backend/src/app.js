@@ -1,10 +1,13 @@
-// TODO: Main Express application setup with middleware and routing
+// Main Express application setup with middleware and routing
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const pino = require('pino');
 const pinoHttp = require('pino-http');
+
+// Import Sentry (Story 3.8)
+const sentry = require('./config/sentry');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -14,6 +17,10 @@ const routes = require('./routes/index');
 
 // Create Express app
 const app = express();
+
+// Sentry request handler (must be first middleware) - Story 3.8
+app.use(sentry.requestHandler());
+app.use(sentry.tracingHandler());
 
 // Create logger
 const logger = pino({
@@ -116,6 +123,9 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Sentry error handler (must be before other error handlers) - Story 3.8
+app.use(sentry.errorHandler());
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -4,6 +4,17 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
+# Install system dependencies for Cypress (Alpine Linux compatible)
+RUN apk add --no-cache \
+    xvfb \
+    gtk+3.0 \
+    libnotify-dev \
+    nss \
+    xauth \
+    dbus \
+    chromium \
+    bash
+
 # Install react-scripts globally
 RUN npm install -g react-scripts
 

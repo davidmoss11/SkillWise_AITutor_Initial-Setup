@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AI Service - Snapshot Tests (Standalone) generateChallenge should match snapshot for easy challenge structure 1`] = `
+{
+  "category": Any<String>,
+  "difficulty": "easy",
+  "estimatedTime": Any<Number>,
+  "instructions": Any<String>,
+  "points": Any<Number>,
+  "skills": Any<Array>,
+  "testCases": Any<Array>,
+  "title": Any<String>,
+}
+`;
+
+exports[`AI Service - Snapshot Tests (Standalone) generateChallenge should match snapshot for medium challenge structure 1`] = `
+{
+  "category": "JavaScript",
+  "difficulty": "medium",
+  "estimatedTime": 45,
+  "instructions": Any<String>,
+  "points": Any<Number>,
+  "skills": [
+    "OOP",
+    "Classes",
+    "CRUD",
+  ],
+  "testCases": [],
+  "title": Any<String>,
+}
+`;
+
+exports[`AI Service - Snapshot Tests (Standalone) generateFeedback should match snapshot for feedback structure 1`] = `
+{
+  "areas_for_improvement": Any<Array>,
+  "code_quality_score": Any<Number>,
+  "meets_requirements": Any<Boolean>,
+  "next_steps": Any<Array>,
+  "overall_assessment": Any<String>,
+  "specific_suggestions": Any<Array>,
+  "strengths": Any<Array>,
+}
+`;
+
+exports[`AI Service - Snapshot Tests (Standalone) generateFeedback should match snapshot for low-quality code feedback 1`] = `
+{
+  "areas_for_improvement": [
+    "Lacks error handling",
+    "Poor variable naming",
+  ],
+  "code_quality_score": Any<Number>,
+  "meets_requirements": false,
+  "next_steps": [
+    "Review best practices",
+  ],
+  "overall_assessment": Any<String>,
+  "specific_suggestions": [
+    "Add try-catch blocks",
+    "Use descriptive names",
+  ],
+  "strengths": [
+    "Basic structure is present",
+  ],
+}
+`;

@@ -25,7 +25,9 @@ const promptTemplates = {
     const prompt = `You are an expert educational content creator. Generate a coding challenge with the following specifications:
 
 **Category:** ${category}
-**Difficulty Level:** ${difficulty} (${difficultyDescriptions[difficulty] || 'moderate complexity'})
+**Difficulty Level:** ${difficulty} (${
+      difficultyDescriptions[difficulty] || 'moderate complexity'
+    })
 ${topic ? `**Specific Topic:** ${topic}` : ''}
 ${userLevel ? `**User Level:** ${userLevel}` : ''}
 ${learningObjectives ? `**Learning Objectives:** ${learningObjectives}` : ''}
@@ -55,7 +57,11 @@ Make the challenge engaging, educational, and appropriately challenging for the 
     return prompt;
   },
 
-  generateFeedback: ({ submissionCode, challengeTitle, challengeInstructions }) => {
+  generateFeedback: ({
+    submissionCode,
+    challengeTitle,
+    challengeInstructions,
+  }) => {
     return `You are an expert programming tutor providing constructive feedback. 
 
 **Challenge:** ${challengeTitle}
@@ -79,9 +85,18 @@ Provide detailed, constructive feedback in JSON format (return ONLY valid JSON):
 Be encouraging while providing actionable feedback.`;
   },
 
-  generateHints: ({ challengeTitle, challengeInstructions, userAttempts = 0 }) => {
-    const hintLevel = userAttempts === 0 ? 'gentle nudge' : userAttempts === 1 ? 'more specific' : 'detailed guidance';
-    
+  generateHints: ({
+    challengeTitle,
+    challengeInstructions,
+    userAttempts = 0,
+  }) => {
+    const hintLevel =
+      userAttempts === 0
+        ? 'gentle nudge'
+        : userAttempts === 1
+        ? 'more specific'
+        : 'detailed guidance';
+
     return `You are a helpful programming tutor. A student is working on this challenge:
 
 **Challenge:** ${challengeTitle}
@@ -109,23 +124,29 @@ const callCohereAPI = async (prompt, maxTokens = 1500) => {
     const response = await axios.post(
       COHERE_API_URL,
       {
-        model: process.env.COHERE_MODEL || 'command-a-03-2025',
+        model: process.env.COHERE_MODEL || 'command-r-plus-08-2024',
         message: prompt,
         max_tokens: maxTokens,
         temperature: 0.7,
       },
       {
         headers: {
-          'Authorization': `Bearer ${COHERE_API_KEY}`,
+          Authorization: `Bearer ${COHERE_API_KEY}`,
           'Content-Type': 'application/json',
         },
+        timeout: 60000, // 60 second timeout for AI requests
       }
     );
 
+    // Cohere returns text in response.data.text
     return response.data.text;
   } catch (error) {
     console.error('Cohere API Error:', error.response?.data || error.message);
-    throw new Error(`Cohere API call failed: ${error.response?.data?.message || error.message}`);
+    throw new Error(
+      `Cohere API call failed: ${
+        error.response?.data?.message || error.message
+      }`
+    );
   }
 };
 
@@ -135,11 +156,11 @@ const parseAIResponse = (responseText) => {
     // Try to extract JSON from markdown code blocks if present
     const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     const jsonText = jsonMatch ? jsonMatch[1] : responseText;
-    
+
     // Try to find JSON object in the text
     const jsonObjectMatch = jsonText.match(/\{[\s\S]*\}/);
     const cleanedText = jsonObjectMatch ? jsonObjectMatch[0] : jsonText.trim();
-    
+
     return JSON.parse(cleanedText);
   } catch (error) {
     console.error('Failed to parse AI response as JSON:', error);
@@ -160,7 +181,8 @@ const aiService = {
       // Get user level if userId provided
       let userLevel = null;
       if (userId) {
-        const userStatsQuery = 'SELECT * FROM user_statistics WHERE user_id = $1';
+        const userStatsQuery =
+          'SELECT * FROM user_statistics WHERE user_id = $1';
         const userStatsResult = await db.query(userStatsQuery, [userId]);
         if (userStatsResult.rows.length > 0) {
           const stats = userStatsResult.rows[0];
@@ -191,7 +213,7 @@ ${prompt}`;
         category,
         difficulty,
         topic,
-        model: process.env.COHERE_MODEL || 'command-a-03-2025',
+        model: process.env.COHERE_MODEL || 'command-r-plus-08-2024',
       });
 
       // Store AI interaction log in database
@@ -199,7 +221,11 @@ ${prompt}`;
         await db.query(
           `INSERT INTO ai_feedback (challenge_id, user_id, feedback_type, prompt, response, created_at)
            VALUES (NULL, $1, 'challenge_generation', $2, $3, NOW())`,
-          [userId, prompt.substring(0, 500), JSON.stringify(challengeData).substring(0, 1000)]
+          [
+            userId,
+            prompt.substring(0, 500),
+            JSON.stringify(challengeData).substring(0, 1000),
+          ]
         );
       } catch (logError) {
         console.error('Failed to log AI interaction:', logError.message);
@@ -244,7 +270,7 @@ ${prompt}`;
     try {
       const challengeQuery = 'SELECT * FROM challenges WHERE id = $1';
       const challengeResult = await db.query(challengeQuery, [challengeId]);
-      
+
       if (challengeResult.rows.length === 0) {
         throw new Error('Challenge not found');
       }
@@ -279,7 +305,7 @@ ${prompt}`;
       // Get user statistics
       const statsQuery = 'SELECT * FROM user_statistics WHERE user_id = $1';
       const statsResult = await db.query(statsQuery, [userId]);
-      
+
       const stats = statsResult.rows[0] || {};
 
       const prompt = `Analyze this user's learning pattern and provide insights:
@@ -329,9 +355,13 @@ ${prompt}`;
       `;
       const completedResult = await db.query(completedQuery, [userId]);
 
-      const completedSummary = completedResult.rows.map(row => 
-        `${row.category} (${row.difficulty_level}): ${row.count} challenges`
-      ).join(', ') || 'No challenges completed yet';
+      const completedSummary =
+        completedResult.rows
+          .map(
+            (row) =>
+              `${row.category} (${row.difficulty_level}): ${row.count} challenges`
+          )
+          .join(', ') || 'No challenges completed yet';
 
       const prompt = `Based on this user's completed challenges, suggest 3 next challenges they should attempt:
 

@@ -4,60 +4,59 @@ const challengeController = {
   // Get all challenges with optional filters
   getChallenges: async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const {
-        category,
-        difficulty,
-        is_active,
-        goal_id,
-        search,
-      } = req.query;
+      const userId = req.user?.id;
+      const { category, difficulty, is_active, search } = req.query;
 
       let query = `
         SELECT c.*, 
-               g.title as goal_title,
-               u.email as creator_email
+               u.email as creator_email,
+               u.first_name as creator_first_name,
+               u.last_name as creator_last_name
         FROM challenges c
-        LEFT JOIN goals g ON c.goal_id = g.id
         LEFT JOIN users u ON c.created_by = u.id
-        WHERE c.created_by = $1
       `;
-      const params = [userId];
-      let paramIndex = 2;
+      const params = [];
+      let paramIndex = 1;
 
-      // Filter by goal_id (show challenges for a specific goal)
-      if (goal_id) {
-        query += ` AND c.goal_id = $${paramIndex}`;
-        params.push(goal_id);
-        paramIndex++;
-      }
+      // Build WHERE clause conditions
+      const conditions = [];
+
+      // Note: Show all challenges, not just user's own challenges
+      // Users can see all available challenges to attempt
 
       // Filter by category
       if (category) {
-        query += ` AND c.category = $${paramIndex}`;
+        conditions.push(`c.category = $${paramIndex}`);
         params.push(category);
         paramIndex++;
       }
 
       // Filter by difficulty
       if (difficulty) {
-        query += ` AND c.difficulty_level = $${paramIndex}`;
+        conditions.push(`c.difficulty_level = $${paramIndex}`);
         params.push(difficulty.toLowerCase());
         paramIndex++;
       }
 
       // Filter by active status
       if (is_active !== undefined) {
-        query += ` AND c.is_active = $${paramIndex}`;
+        conditions.push(`c.is_active = $${paramIndex}`);
         params.push(is_active === 'true');
         paramIndex++;
       }
 
       // Search by title or description
       if (search) {
-        query += ` AND (c.title ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`;
+        conditions.push(
+          `(c.title ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`
+        );
         params.push(`%${search}%`);
         paramIndex++;
+      }
+
+      // Add WHERE clause if there are conditions
+      if (conditions.length > 0) {
+        query += ' WHERE ' + conditions.join(' AND ');
       }
 
       query += ' ORDER BY c.created_at DESC';
@@ -79,20 +78,20 @@ const challengeController = {
   },
 
   // Get single challenge by ID
+  // eslint-disable-next-line no-unused-vars
   getChallengeById: async (req, res, next) => {
     try {
       const challengeId = req.params.id;
 
       const result = await db.query(
         `SELECT c.*, 
-                g.title as goal_title,
-                g.user_id as goal_owner_id,
-                u.email as creator_email
+                u.email as creator_email,
+                u.first_name as creator_first_name,
+                u.last_name as creator_last_name
          FROM challenges c
-         LEFT JOIN goals g ON c.goal_id = g.id
          LEFT JOIN users u ON c.created_by = u.id
          WHERE c.id = $1`,
-        [challengeId],
+        [challengeId]
       );
 
       if (result.rows.length === 0) {
@@ -116,6 +115,7 @@ const challengeController = {
   },
 
   // Create new challenge
+  // eslint-disable-next-line no-unused-vars
   createChallenge: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -130,7 +130,6 @@ const challengeController = {
         max_attempts,
         requires_peer_review,
         is_active,
-        goal_id,
         tags,
         prerequisites,
         learning_objectives,
@@ -165,28 +164,13 @@ const challengeController = {
         });
       }
 
-      // If goal_id is provided, verify it exists and belongs to user
-      if (goal_id) {
-        const goalCheck = await db.query(
-          'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
-          [goal_id, userId],
-        );
-
-        if (goalCheck.rows.length === 0) {
-          return res.status(404).json({
-            success: false,
-            error: 'Goal not found or does not belong to you',
-          });
-        }
-      }
-
       // Insert challenge
       const result = await db.query(
         `INSERT INTO challenges 
         (title, description, instructions, category, difficulty_level, estimated_time_minutes, 
-         points_reward, max_attempts, requires_peer_review, is_active, created_by, goal_id,
+         points_reward, max_attempts, requires_peer_review, is_active, created_by,
          tags, prerequisites, learning_objectives, created_at, updated_at) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, now(), now()) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, now(), now()) 
         RETURNING *`,
         [
           title.trim(),
@@ -200,11 +184,10 @@ const challengeController = {
           requires_peer_review || false,
           is_active !== undefined ? is_active : true,
           userId,
-          goal_id || null,
           tags || [],
           prerequisites || [],
           learning_objectives || [],
-        ],
+        ]
       );
 
       res.status(201).json({
@@ -222,6 +205,7 @@ const challengeController = {
   },
 
   // Update existing challenge
+  // eslint-disable-next-line no-unused-vars
   updateChallenge: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -237,7 +221,6 @@ const challengeController = {
         max_attempts,
         requires_peer_review,
         is_active,
-        goal_id,
         tags,
         prerequisites,
         learning_objectives,
@@ -245,11 +228,8 @@ const challengeController = {
 
       // Check if challenge exists and user has permission
       const existing = await db.query(
-        `SELECT c.*, g.user_id as goal_owner_id 
-         FROM challenges c
-         LEFT JOIN goals g ON c.goal_id = g.id
-         WHERE c.id = $1`,
-        [challengeId],
+        'SELECT * FROM challenges WHERE id = $1',
+        [challengeId]
       );
 
       if (existing.rows.length === 0) {
@@ -261,8 +241,8 @@ const challengeController = {
 
       const challenge = existing.rows[0];
 
-      // User can only update if they created it or if it's linked to their goal
-      if (challenge.created_by !== userId && challenge.goal_owner_id !== userId) {
+      // User can only update if they created it
+      if (challenge.created_by !== userId) {
         return res.status(403).json({
           success: false,
           error: 'You do not have permission to update this challenge',
@@ -321,7 +301,8 @@ const challengeController = {
         if (!validDifficulties.includes(difficulty_level.toLowerCase())) {
           return res.status(400).json({
             success: false,
-            error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert',
+            error:
+              'Invalid difficulty level. Must be: easy, medium, hard, or expert',
           });
         }
         updates.push(`difficulty_level = $${paramIndex}`);
@@ -356,26 +337,6 @@ const challengeController = {
       if (is_active !== undefined) {
         updates.push(`is_active = $${paramIndex}`);
         params.push(is_active);
-        paramIndex++;
-      }
-
-      if (goal_id !== undefined) {
-        if (goal_id) {
-          // Verify goal exists and belongs to user
-          const goalCheck = await db.query(
-            'SELECT id FROM goals WHERE id = $1 AND user_id = $2',
-            [goal_id, userId],
-          );
-
-          if (goalCheck.rows.length === 0) {
-            return res.status(404).json({
-              success: false,
-              error: 'Goal not found or does not belong to you',
-            });
-          }
-        }
-        updates.push(`goal_id = $${paramIndex}`);
-        params.push(goal_id);
         paramIndex++;
       }
 
@@ -434,6 +395,7 @@ const challengeController = {
   },
 
   // Delete challenge
+  // eslint-disable-next-line no-unused-vars
   deleteChallenge: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -441,11 +403,8 @@ const challengeController = {
 
       // Check if challenge exists and user has permission
       const existing = await db.query(
-        `SELECT c.*, g.user_id as goal_owner_id 
-         FROM challenges c
-         LEFT JOIN goals g ON c.goal_id = g.id
-         WHERE c.id = $1`,
-        [challengeId],
+        'SELECT * FROM challenges WHERE id = $1',
+        [challengeId]
       );
 
       if (existing.rows.length === 0) {
@@ -457,8 +416,8 @@ const challengeController = {
 
       const challenge = existing.rows[0];
 
-      // User can only delete if they created it or if it's linked to their goal
-      if (challenge.created_by !== userId && challenge.goal_owner_id !== userId) {
+      // User can only delete if they created it
+      if (challenge.created_by !== userId) {
         return res.status(403).json({
           success: false,
           error: 'You do not have permission to delete this challenge',

@@ -2,6 +2,7 @@ const db = require('../database/connection');
 
 const goalController = {
   // Get all goals for user
+  // eslint-disable-next-line no-unused-vars
   getGoals: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -48,6 +49,7 @@ const goalController = {
   },
 
   // Get single goal by ID
+  // eslint-disable-next-line no-unused-vars
   getGoalById: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -55,7 +57,7 @@ const goalController = {
 
       const result = await db.query(
         'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
-        [goalId, userId],
+        [goalId, userId]
       );
 
       if (result.rows.length === 0) {
@@ -79,6 +81,7 @@ const goalController = {
   },
 
   // Create new goal
+  // eslint-disable-next-line no-unused-vars
   createGoal: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -108,10 +111,14 @@ const goalController = {
 
       // Valid difficulty levels
       const validDifficulties = ['easy', 'medium', 'hard', 'expert'];
-      if (difficulty_level && !validDifficulties.includes(difficulty_level.toLowerCase())) {
+      if (
+        difficulty_level &&
+        !validDifficulties.includes(difficulty_level.toLowerCase())
+      ) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid difficulty level. Must be: easy, medium, hard, or expert',
+          error:
+            'Invalid difficulty level. Must be: easy, medium, hard, or expert',
         });
       }
 
@@ -128,7 +135,7 @@ const goalController = {
           difficulty_level ? difficulty_level.toLowerCase() : 'medium',
           target_completion_date || null,
           is_public || false,
-        ],
+        ]
       );
 
       res.status(201).json({
@@ -146,6 +153,7 @@ const goalController = {
   },
 
   // Update existing goal
+  // eslint-disable-next-line no-unused-vars
   updateGoal: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -164,7 +172,7 @@ const goalController = {
       // Check if goal exists and belongs to user
       const existing = await db.query(
         'SELECT * FROM goals WHERE id = $1 AND user_id = $2',
-        [goalId, userId],
+        [goalId, userId]
       );
 
       if (existing.rows.length === 0) {
@@ -230,7 +238,10 @@ const goalController = {
         // Set completion date if marking as completed
         if (is_completed) {
           updates.push('completion_date = now()');
-          updates.push('progress_percentage = 100');
+          // Only set progress to 100 if not explicitly provided
+          if (progress_percentage === undefined) {
+            updates.push('progress_percentage = 100');
+          }
         }
       }
 
@@ -287,6 +298,7 @@ const goalController = {
   },
 
   // Delete goal
+  // eslint-disable-next-line no-unused-vars
   deleteGoal: async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -294,7 +306,7 @@ const goalController = {
 
       const result = await db.query(
         'DELETE FROM goals WHERE id = $1 AND user_id = $2 RETURNING id',
-        [goalId, userId],
+        [goalId, userId]
       );
 
       if (result.rows.length === 0) {

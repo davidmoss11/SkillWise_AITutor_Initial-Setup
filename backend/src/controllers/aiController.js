@@ -1,10 +1,12 @@
 // AI integration controller for feedback, hints, and challenge generation
 const aiService = require('../services/aiService');
+// eslint-disable-next-line no-unused-vars
 const challengeService = require('../services/challengeService');
 const db = require('../database/connection');
 
 const aiController = {
   // Generate AI feedback for submission
+  // eslint-disable-next-line no-unused-vars
   generateFeedback: async (req, res, next) => {
     try {
       const { submissionId, submissionText, challengeId } = req.body;
@@ -19,7 +21,7 @@ const aiController = {
       // Get challenge context
       const challengeQuery = 'SELECT * FROM challenges WHERE id = $1';
       const challengeResult = await db.query(challengeQuery, [challengeId]);
-      
+
       if (challengeResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
@@ -52,11 +54,7 @@ const aiController = {
   submitForFeedback: async (req, res, next) => {
     try {
       const userId = req.user?.id;
-      const {
-        challengeId,
-        submissionText,
-        submissionType = 'code',
-      } = req.body;
+      const { challengeId, submissionText, submissionType = 'code' } = req.body;
 
       if (!userId) {
         return res.status(401).json({
@@ -75,7 +73,7 @@ const aiController = {
       // Get challenge context
       const challengeQuery = 'SELECT * FROM challenges WHERE id = $1';
       const challengeResult = await db.query(challengeQuery, [challengeId]);
-      
+
       if (challengeResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
@@ -148,18 +146,20 @@ const aiController = {
         feedback.code_quality_score || null,
         feedback.meets_requirements || null,
         feedback.next_steps || [],
-        process.env.COHERE_MODEL || 'command-a-03-2025',
+        process.env.COHERE_MODEL || 'command-r-plus-08-2024',
       ]);
 
       const savedFeedback = feedbackResult.rows[0];
 
       // Update submission status
-      await db.query(
-        'UPDATE submissions SET status = $1 WHERE id = $2',
-        ['reviewed', submission.id]
-      );
+      await db.query('UPDATE submissions SET status = $1 WHERE id = $2', [
+        'reviewed',
+        submission.id,
+      ]);
 
-      console.log(`✅ AI Feedback generated and saved for submission ${submission.id} (${processingTime}ms)`);
+      console.log(
+        `✅ AI Feedback generated and saved for submission ${submission.id} (${processingTime}ms)`
+      );
 
       res.status(200).json({
         success: true,
@@ -302,6 +302,7 @@ const aiController = {
   },
 
   // Generate a new challenge using AI (Story 3.2)
+  // eslint-disable-next-line no-unused-vars
   generateChallenge: async (req, res, next) => {
     try {
       const {
@@ -313,12 +314,23 @@ const aiController = {
 
       const userId = req.user?.id;
 
+      // Check if COHERE_API_KEY is configured
+      if (!process.env.COHERE_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          message:
+            'AI service is not configured. Please set COHERE_API_KEY environment variable.',
+        });
+      }
+
       // Validate difficulty level
       const validDifficulties = ['easy', 'medium', 'hard', 'expert'];
       if (!validDifficulties.includes(difficulty)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid difficulty level. Must be one of: ${validDifficulties.join(', ')}`,
+          message: `Invalid difficulty level. Must be one of: ${validDifficulties.join(
+            ', '
+          )}`,
         });
       }
 
@@ -362,7 +374,10 @@ const aiController = {
 
           savedChallenge = result.rows[0];
 
-          console.log('✅ AI-generated challenge saved to database:', savedChallenge.id);
+          console.log(
+            '✅ AI-generated challenge saved to database:',
+            savedChallenge.id
+          );
         } catch (saveError) {
           console.error('Failed to save challenge to database:', saveError);
           // Don't fail the request if saving fails, just log it
@@ -383,16 +398,34 @@ const aiController = {
       });
     } catch (error) {
       console.error('Generate challenge error:', error);
-      
-      // Check if it's an OpenAI API error
-      if (error.message.includes('API key')) {
+
+      // Check if it's an AI API error
+      if (
+        error.message.includes('API key') ||
+        error.message.includes('COHERE_API_KEY')
+      ) {
         return res.status(500).json({
           success: false,
-          message: 'AI service configuration error. Please contact administrator.',
+          message:
+            'AI service configuration error. Please contact administrator.',
         });
       }
 
-      next(error);
+      // Check if it's a Cohere API error
+      if (error.message.includes('Cohere API call failed')) {
+        return res.status(500).json({
+          success: false,
+          message:
+            'AI service is currently unavailable. Please try again later.',
+        });
+      }
+
+      // Return generic error with message
+      return res.status(500).json({
+        success: false,
+        message:
+          error.message || 'Failed to generate challenge. Please try again.',
+      });
     }
   },
 

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const db = require('../database/connection');
+const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -38,14 +38,26 @@ router.post('/register', async (req, res) => {
     );
     const user = insert.rows[0];
 
-    // Issue access token
-    const accessToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET || 'dev-secret',
-      {
-        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-      },
+    // Generate tokens
+    const accessToken = generateToken({ id: user.id });
+    const refreshToken = generateRefreshToken({ id: user.id });
+
+    // Store refresh token in database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+    
+    await db.query(
+      'INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',
+      [refreshToken, user.id, expiresAt]
     );
+
+    // Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
 
     return res
       .status(201)
@@ -89,13 +101,26 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const accessToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET || 'dev-secret',
-      {
-        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-      },
+    // Generate tokens
+    const accessToken = generateToken({ id: user.id });
+    const refreshToken = generateRefreshToken({ id: user.id });
+
+    // Store refresh token in database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+    
+    await db.query(
+      'INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',
+      [refreshToken, user.id, expiresAt]
     );
+
+    // Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
 
     // Fetch full user details
     const userDetails = await db.query(
@@ -124,20 +149,92 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/refresh
 router.post('/refresh', async (req, res) => {
   try {
-    // For now, return 401 as we don't have refresh token implementation
-    // This will cause the frontend to redirect to login
-    return res.status(401).json({ error: 'Refresh token not implemented yet' });
+    // Get refresh token from httpOnly cookie
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'No refresh token provided' });
+    }
+
+    // Verify the refresh token
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(refreshToken);
+    } catch (err) {
+      console.error('Invalid refresh token:', err.message);
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+
+    // Check if token exists in database and is not revoked or expired
+    const tokenResult = await db.query(
+      'SELECT id, user_id, expires_at, is_revoked FROM refresh_tokens WHERE token = $1',
+      [refreshToken]
+    );
+
+    if (tokenResult.rowCount === 0) {
+      return res.status(401).json({ error: 'Refresh token not found' });
+    }
+
+    const tokenData = tokenResult.rows[0];
+
+    if (tokenData.is_revoked) {
+      return res.status(401).json({ error: 'Refresh token has been revoked' });
+    }
+
+    if (new Date(tokenData.expires_at) < new Date()) {
+      return res.status(401).json({ error: 'Refresh token has expired' });
+    }
+
+    // Generate new access token
+    const accessToken = generateToken({ id: tokenData.user_id });
+
+    // Optionally rotate refresh token (recommended for security)
+    const newRefreshToken = generateRefreshToken({ id: tokenData.user_id });
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // Revoke old token and create new one
+    await db.query('UPDATE refresh_tokens SET is_revoked = true WHERE id = $1', [tokenData.id]);
+    await db.query(
+      'INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',
+      [newRefreshToken, tokenData.user_id, expiresAt]
+    );
+
+    // Set new refresh token cookie
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({ accessToken });
   } catch (err) {
     console.error('Refresh error', err);
-    return res.status(500).json({ error: 'Refresh failed' });
+    return res.status(500).json({ error: 'Token refresh failed' });
   }
 });
 
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
   try {
-    // For now, just return success
-    // In a full implementation, we would clear refresh tokens from database
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (refreshToken) {
+      // Revoke the refresh token in database
+      await db.query(
+        'UPDATE refresh_tokens SET is_revoked = true WHERE token = $1',
+        [refreshToken]
+      );
+    }
+
+    // Clear the refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
     return res.json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
     console.error('Logout error', err);

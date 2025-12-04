@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import './InteractiveChallengeWorkspace.css';
 
 const InteractiveChallengeWorkspace = () => {
+  // State management with React hooks
   const { id } = useParams();
   const navigate = useNavigate();
-  
   const [challenge, setChallenge] = useState(null);
   const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,6 +16,7 @@ const InteractiveChallengeWorkspace = () => {
   const [error, setError] = useState('');
   const [isLoadingChallenge, setIsLoadingChallenge] = useState(true);
 
+  // Handle code submission to AI
   useEffect(() => {
     loadChallenge();
     loadFeedbackHistory();
@@ -26,7 +27,7 @@ const InteractiveChallengeWorkspace = () => {
       setIsLoadingChallenge(true);
       const response = await apiService.challenges.getById(id);
       setChallenge(response.data.challenge);
-      
+
       // Set starter code if available
       if (response.data.challenge.starter_code) {
         setCode(response.data.challenge.starter_code);
@@ -63,7 +64,7 @@ const InteractiveChallengeWorkspace = () => {
 
       const response = await apiService.ai.submitForFeedback({
         submissionText: code,
-        challengeId: challenge.id
+        challengeId: challenge.id,
       });
 
       if (response.data.success) {
@@ -106,7 +107,7 @@ const InteractiveChallengeWorkspace = () => {
         specific_suggestions: historicalFeedback.specific_suggestions,
         code_quality_score: historicalFeedback.code_quality_score,
         meets_requirements: historicalFeedback.meets_requirements,
-        next_steps: historicalFeedback.next_steps
+        next_steps: historicalFeedback.next_steps,
       });
       setShowHistory(false);
     }
@@ -147,10 +148,14 @@ const InteractiveChallengeWorkspace = () => {
             </span>
             <span className="badge badge-category">{challenge.category}</span>
             {challenge.estimated_time_minutes && (
-              <span className="badge badge-time">⏱ {challenge.estimated_time_minutes} min</span>
+              <span className="badge badge-time">
+                ⏱ {challenge.estimated_time_minutes} min
+              </span>
             )}
             {challenge.points_reward && (
-              <span className="badge badge-points">🏆 {challenge.points_reward} pts</span>
+              <span className="badge badge-points">
+                🏆 {challenge.points_reward} pts
+              </span>
             )}
           </div>
         </div>
@@ -180,16 +185,17 @@ const InteractiveChallengeWorkspace = () => {
               </div>
             )}
 
-            {challenge.learning_objectives && challenge.learning_objectives.length > 0 && (
-              <div className="section">
-                <h3>🎯 Learning Objectives</h3>
-                <ul>
-                  {challenge.learning_objectives.map((objective, idx) => (
-                    <li key={idx}>{objective}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {challenge.learning_objectives &&
+              challenge.learning_objectives.length > 0 && (
+                <div className="section">
+                  <h3>🎯 Learning Objectives</h3>
+                  <ul>
+                    {challenge.learning_objectives.map((objective, idx) => (
+                      <li key={idx}>{objective}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
             {challenge.test_cases && challenge.test_cases.length > 0 && (
               <div className="section">
@@ -197,10 +203,16 @@ const InteractiveChallengeWorkspace = () => {
                 <div className="test-cases">
                   {challenge.test_cases.map((testCase, idx) => (
                     <div key={idx} className="test-case">
-                      <div><strong>Input:</strong> {testCase.input}</div>
-                      <div><strong>Expected:</strong> {testCase.expected_output}</div>
+                      <div>
+                        <strong>Input:</strong> {testCase.input}
+                      </div>
+                      <div>
+                        <strong>Expected:</strong> {testCase.expected_output}
+                      </div>
                       {testCase.description && (
-                        <div className="test-description">{testCase.description}</div>
+                        <div className="test-description">
+                          {testCase.description}
+                        </div>
                       )}
                     </div>
                   ))}
@@ -221,7 +233,10 @@ const InteractiveChallengeWorkspace = () => {
                   🔄 Reset
                 </button>
                 {feedbackHistory.length > 0 && (
-                  <button onClick={handleViewHistory} className="btn-secondary btn-sm">
+                  <button
+                    onClick={handleViewHistory}
+                    className="btn-secondary btn-sm"
+                  >
                     📜 History ({feedbackHistory.length})
                   </button>
                 )}
@@ -236,8 +251,8 @@ const InteractiveChallengeWorkspace = () => {
                 spellCheck={false}
               />
               <div className="editor-footer">
-                <button 
-                  onClick={handleSubmitCode} 
+                <button
+                  onClick={handleSubmitCode}
                   className="btn-primary btn-submit"
                   disabled={isSubmitting || !code.trim()}
                 >
@@ -277,11 +292,15 @@ const InteractiveChallengeWorkspace = () => {
                     <h3>Overall Assessment</h3>
                     {feedback.code_quality_score && (
                       <div className="quality-score">
-                        <span className="score-value">{feedback.code_quality_score}/10</span>
+                        <span className="score-value">
+                          {feedback.code_quality_score}/10
+                        </span>
                         <div className="score-bar">
-                          <div 
-                            className="score-fill" 
-                            style={{ width: `${feedback.code_quality_score * 10}%` }}
+                          <div
+                            className="score-fill"
+                            style={{
+                              width: `${feedback.code_quality_score * 10}%`,
+                            }}
                           ></div>
                         </div>
                       </div>
@@ -289,8 +308,14 @@ const InteractiveChallengeWorkspace = () => {
                   </div>
                   <p>{feedback.overall_assessment}</p>
                   {feedback.meets_requirements !== undefined && (
-                    <div className={`requirements-badge ${feedback.meets_requirements ? 'success' : 'warning'}`}>
-                      {feedback.meets_requirements ? '✅ Meets Requirements' : '⚠️ Needs Improvement'}
+                    <div
+                      className={`requirements-badge ${
+                        feedback.meets_requirements ? 'success' : 'warning'
+                      }`}
+                    >
+                      {feedback.meets_requirements
+                        ? '✅ Meets Requirements'
+                        : '⚠️ Needs Improvement'}
                     </div>
                   )}
                 </div>
@@ -308,28 +333,32 @@ const InteractiveChallengeWorkspace = () => {
                 )}
 
                 {/* Areas for Improvement */}
-                {feedback.areas_for_improvement && feedback.areas_for_improvement.length > 0 && (
-                  <div className="feedback-item feedback-improvements">
-                    <h3>📈 Areas for Improvement</h3>
-                    <ul>
-                      {feedback.areas_for_improvement.map((area, idx) => (
-                        <li key={idx}>{area}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {feedback.areas_for_improvement &&
+                  feedback.areas_for_improvement.length > 0 && (
+                    <div className="feedback-item feedback-improvements">
+                      <h3>📈 Areas for Improvement</h3>
+                      <ul>
+                        {feedback.areas_for_improvement.map((area, idx) => (
+                          <li key={idx}>{area}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Specific Suggestions */}
-                {feedback.specific_suggestions && feedback.specific_suggestions.length > 0 && (
-                  <div className="feedback-item feedback-suggestions">
-                    <h3>💡 Specific Suggestions</h3>
-                    <ul>
-                      {feedback.specific_suggestions.map((suggestion, idx) => (
-                        <li key={idx}>{suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {feedback.specific_suggestions &&
+                  feedback.specific_suggestions.length > 0 && (
+                    <div className="feedback-item feedback-suggestions">
+                      <h3>💡 Specific Suggestions</h3>
+                      <ul>
+                        {feedback.specific_suggestions.map(
+                          (suggestion, idx) => (
+                            <li key={idx}>{suggestion}</li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Next Steps */}
                 {feedback.next_steps && feedback.next_steps.length > 0 && (
@@ -352,7 +381,9 @@ const InteractiveChallengeWorkspace = () => {
               <div className="history-content">
                 <div className="history-header">
                   <h2>📜 Submission History</h2>
-                  <button onClick={handleViewHistory} className="btn-close">×</button>
+                  <button onClick={handleViewHistory} className="btn-close">
+                    ×
+                  </button>
                 </div>
                 <div className="history-list">
                   {feedbackHistory.length === 0 ? (
@@ -368,8 +399,10 @@ const InteractiveChallengeWorkspace = () => {
                             Score: {item.code_quality_score}/10
                           </span>
                         </div>
-                        <p className="history-assessment">{item.overall_assessment}</p>
-                        <button 
+                        <p className="history-assessment">
+                          {item.overall_assessment}
+                        </p>
+                        <button
                           onClick={() => handleLoadPreviousSubmission(item)}
                           className="btn-secondary btn-sm"
                         >
@@ -380,7 +413,10 @@ const InteractiveChallengeWorkspace = () => {
                   )}
                 </div>
               </div>
-              <div className="history-backdrop" onClick={handleViewHistory}></div>
+              <div
+                className="history-backdrop"
+                onClick={handleViewHistory}
+              ></div>
             </div>
           )}
         </div>

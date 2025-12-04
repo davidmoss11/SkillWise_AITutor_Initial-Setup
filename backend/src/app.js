@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const pino = require('pino');
 const pinoHttp = require('pino-http');
+const cookieParser = require('cookie-parser');
 
 // Import Sentry (Story 3.8)
 const sentry = require('./config/sentry');
@@ -89,6 +90,9 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+// Cookie parsing middleware
+app.use(cookieParser());
 
 // Body parsing middleware
 app.use(express.json({
